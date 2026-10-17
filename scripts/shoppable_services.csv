@@ -1,0 +1,77 @@
+code,code_type,category,service_name
+70450,HCPCS,Imaging,CT head/brain without contrast
+70553,HCPCS,Imaging,MRI brain with and without contrast
+71046,HCPCS,Imaging,Chest X-ray 2 views
+71250,HCPCS,Imaging,CT thorax without contrast
+72110,HCPCS,Imaging,X-ray lumbar spine 4+ views
+72148,HCPCS,Imaging,MRI lumbar spine without contrast
+73721,HCPCS,Imaging,MRI lower extremity joint without contrast
+74177,HCPCS,Imaging,CT abdomen and pelvis with contrast
+76700,HCPCS,Imaging,Abdominal ultrasound complete
+76805,HCPCS,Imaging,OB ultrasound after first trimester
+76830,HCPCS,Imaging,Transvaginal ultrasound
+77067,HCPCS,Imaging,Screening mammography bilateral
+93000,HCPCS,Cardiology,Electrocardiogram with interpretation
+93306,HCPCS,Cardiology,Echocardiogram complete with Doppler
+93880,HCPCS,Cardiology,Carotid duplex ultrasound
+80048,HCPCS,Laboratory,Basic metabolic panel
+80053,HCPCS,Laboratory,Comprehensive metabolic panel
+80061,HCPCS,Laboratory,Lipid panel
+81001,HCPCS,Laboratory,Urinalysis with microscopy
+83036,HCPCS,Laboratory,Hemoglobin A1c
+84443,HCPCS,Laboratory,Thyroid stimulating hormone (TSH)
+85025,HCPCS,Laboratory,Complete blood count with differential
+86803,HCPCS,Laboratory,Hepatitis C antibody
+87086,HCPCS,Laboratory,Urine culture
+88305,HCPCS,Laboratory,Surgical pathology level IV
+43235,HCPCS,Endoscopy,Upper GI endoscopy diagnostic
+43239,HCPCS,Endoscopy,Upper GI endoscopy with biopsy
+45378,HCPCS,Endoscopy,Diagnostic colonoscopy
+45380,HCPCS,Endoscopy,Colonoscopy with biopsy
+45385,HCPCS,Endoscopy,Colonoscopy with lesion removal by snare
+52000,HCPCS,Surgery,Cystoscopy
+19120,HCPCS,Surgery,Breast lesion excision
+20610,HCPCS,Surgery,Arthrocentesis major joint
+29826,HCPCS,Surgery,Shoulder arthroscopy with decompression
+29881,HCPCS,Surgery,Knee arthroscopy with meniscectomy
+27130,HCPCS,Surgery,Total hip arthroplasty
+27447,HCPCS,Surgery,Total knee arthroplasty
+47562,HCPCS,Surgery,Laparoscopic cholecystectomy
+49505,HCPCS,Surgery,Open inguinal hernia repair age 5+
+66984,HCPCS,Surgery,Cataract removal with lens insertion
+62323,HCPCS,Pain Management,Lumbar epidural injection with imaging
+64483,HCPCS,Pain Management,Lumbar transforaminal epidural injection
+59400,HCPCS,Obstetrics,Vaginal delivery global package
+59510,HCPCS,Obstetrics,Cesarean delivery global package
+99203,HCPCS,Evaluation & Management,Office visit new patient level 3
+99204,HCPCS,Evaluation & Management,Office visit new patient level 4
+99213,HCPCS,Evaluation & Management,Office visit established patient level 3
+99214,HCPCS,Evaluation & Management,Office visit established patient level 4
+99283,HCPCS,Emergency,Emergency department visit level 3
+99284,HCPCS,Emergency,Emergency department visit level 4
+99285,HCPCS,Emergency,Emergency department visit level 5
+97110,HCPCS,Therapy,Physical therapy therapeutic exercise
+97140,HCPCS,Therapy,Manual therapy techniques
+90791,HCPCS,Behavioral Health,Psychiatric diagnostic evaluation
+90834,HCPCS,Behavioral Health,Psychotherapy 45 minutes
+90837,HCPCS,Behavioral Health,Psychotherapy 60 minutes
+90471,HCPCS,Preventive,Immunization administration
+90686,HCPCS,Preventive,Influenza vaccine quadrivalent
+470,MS-DRG,Inpatient Surgical,Major hip/knee joint replacement without MCC
+469,MS-DRG,Inpatient Surgical,Major hip/knee joint replacement with MCC
+871,MS-DRG,Inpatient Medical,Septicemia without ventilator with MCC
+872,MS-DRG,Inpatient Medical,Septicemia without ventilator without MCC
+291,MS-DRG,Inpatient Medical,Heart failure and shock with MCC
+292,MS-DRG,Inpatient Medical,Heart failure and shock with CC
+193,MS-DRG,Inpatient Medical,Simple pneumonia and pleurisy with MCC
+194,MS-DRG,Inpatient Medical,Simple pneumonia and pleurisy with CC
+190,MS-DRG,Inpatient Medical,COPD with MCC
+191,MS-DRG,Inpatient Medical,COPD with CC
+807,MS-DRG,Inpatient Obstetric,Vaginal delivery without sterilization without CC/MCC
+806,MS-DRG,Inpatient Obstetric,Vaginal delivery without sterilization with CC
+788,MS-DRG,Inpatient Obstetric,Cesarean section without sterilization without CC/MCC
+787,MS-DRG,Inpatient Obstetric,Cesarean section without sterilization with CC
+483,MS-DRG,Inpatient Surgical,Major joint/limb reattachment of upper extremity
+481,MS-DRG,Inpatient Surgical,Hip and femur procedures except major joint with CC
+065,MS-DRG,Inpatient Medical,Intracranial hemorrhage or cerebral infarction with CC
+066,MS-DRG,Inpatient Medical,Intracranial hemorrhage or cerebral infarction without CC/MCC
