@@ -4,27 +4,33 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&display=swap">
 
 <style>
-/* Layout: one 1120px column — search band, then a priority ranker, then
-   tabbed output with the map beside a ranked list, stacking at phone width. */
+/* Layout: one 1120px column - search band, then a priority ranker, then
+   tabbed output with the map beside a ranked list, stacking at phone width.
+   Colour: clinical white/blue ground; the two networks carry the only
+   categorical hues (green / purple, validated for colour-vision deficiency in
+   both themes). Magnitude meters use a separate blue so a bar is never
+   mistaken for a hospital's identity colour. */
 :root {
-  --bg:        #f2f6f7;
+  --bg:        #f6f9fb;
   --surface:   #ffffff;
-  --surface-2: #e8eff1;
-  --fg:        #111c21;
-  --muted:     #566a74;
-  --faint:     #7c8d96;
-  --line:      #d5e0e4;
-  --line-soft: #e4ecee;
-  --accent:    #0d6d62;
-  --accent-ink:#0a564d;
-  --soft:      #dcefec;
-  --lvhn:      #0d8b7d;   /* validated categorical pair, light mode */
-  --sluhn:     #b5490b;
-  --warn-bg:   #fdf3e3;
-  --warn-ink:  #7a5212;
-  --warn-line: #e8d3a8;
+  --surface-2: #eef3f8;
+  --fg:        #0f1b26;
+  --muted:     #51677a;
+  --faint:     #76899b;
+  --line:      #d7e2ec;
+  --line-soft: #e8eff5;
+  --accent:    #1a5fa8;
+  --accent-ink:#134a85;
+  --soft:      #e3edf9;
+  --lvhn:      #1a7f4f;   /* validated categorical pair, light mode */
+  --sluhn:     #7b3fa0;
+  --meter:     #4a84c4;   /* magnitude only - never an entity */
   --on-accent: #ffffff;
-  --shadow:    0 1px 2px rgba(17,28,33,.06), 0 8px 24px -16px rgba(17,28,33,.28);
+  --warn-bg:   #fff6e6;
+  --warn-ink:  #70501a;
+  --warn-line: #eddcb6;
+  --line-w:    1px;
+  --shadow:    0 1px 2px rgba(15,27,38,.06), 0 8px 24px -16px rgba(15,27,38,.3);
   --r:         10px;
   --display:   "Newsreader", Georgia, "Times New Roman", serif;
   --ui:        "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -32,26 +38,68 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:#0c1215; --surface:#141d21; --surface-2:#1b262b; --fg:#e7eef0;
-    --muted:#94a7b0; --faint:#7b8e97; --line:#26343a; --line-soft:#1e2a2f;
-    --accent:#4cc3b4; --accent-ink:#8fdcd1; --soft:#11332e;
-    --lvhn:#19a493; --sluhn:#cc6f30;
-    --warn-bg:#2a2213; --warn-ink:#e3c27f; --warn-line:#4a3c1d;
-    --on-accent:#04201c;
+    --bg:#0b1218; --surface:#121c24; --surface-2:#1a2630; --fg:#e8eff5;
+    --muted:#93a7b8; --faint:#7a8da0; --line:#27353f; --line-soft:#1e2a33;
+    --accent:#6aa9e8; --accent-ink:#9ec8f2; --soft:#122b42;
+    --lvhn:#22a068; --sluhn:#9a6ad0; --meter:#5e9bd8;
+    --on-accent:#06192b;
+    --warn-bg:#2a2213; --warn-ink:#e8cd93; --warn-line:#4a3c1d;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg:#0c1215; --surface:#141d21; --surface-2:#1b262b; --fg:#e7eef0;
-  --muted:#94a7b0; --faint:#7b8e97; --line:#26343a; --line-soft:#1e2a2f;
-  --accent:#4cc3b4; --accent-ink:#8fdcd1; --soft:#11332e;
-  --lvhn:#19a493; --sluhn:#cc6f30;
-  --warn-bg:#2a2213; --warn-ink:#e3c27f; --warn-line:#4a3c1d;
-  --on-accent:#04201c;
+  --bg:#0b1218; --surface:#121c24; --surface-2:#1a2630; --fg:#e8eff5;
+  --muted:#93a7b8; --faint:#7a8da0; --line:#27353f; --line-soft:#1e2a33;
+  --accent:#6aa9e8; --accent-ink:#9ec8f2; --soft:#122b42;
+  --lvhn:#22a068; --sluhn:#9a6ad0; --meter:#5e9bd8;
+  --on-accent:#06192b;
+  --warn-bg:#2a2213; --warn-ink:#e8cd93; --warn-line:#4a3c1d;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
   color-scheme: dark;
 }
+
+/* High contrast: pure grounds, hard borders, no shadows. The hues move outside
+   the usual lightness band on purpose - contrast outranks it here - but the
+   green/purple pair still separates under deuteranopia and tritanopia. */
+:root[data-contrast="high"] {
+  --bg:#ffffff; --surface:#ffffff; --surface-2:#e9edf2; --fg:#000000;
+  --muted:#17202a; --faint:#2d3a47; --line:#000000; --line-soft:#5a6672;
+  --accent:#00407a; --accent-ink:#002b52; --soft:#d6e5f7;
+  --lvhn:#00572c; --sluhn:#4b1278; --meter:#00407a;
+  --on-accent:#ffffff;
+  --warn-bg:#fff4d6; --warn-ink:#3d2a00; --warn-line:#000000;
+  --line-w: 2px;
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-contrast="high"]:not([data-theme="light"]) {
+    --bg:#000000; --surface:#000000; --surface-2:#1c1c1c; --fg:#ffffff;
+    --muted:#eaeaea; --faint:#c9c9c9; --line:#ffffff; --line-soft:#8d8d8d;
+    --accent:#7fc4ff; --accent-ink:#b8dcff; --soft:#00294a;
+    --lvhn:#4ae08f; --sluhn:#c79cf0; --meter:#7fc4ff;
+    --on-accent:#000000;
+    --warn-bg:#241c00; --warn-ink:#ffe08a; --warn-line:#ffffff;
+    --line-w: 2px;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"][data-contrast="high"] {
+  --bg:#000000; --surface:#000000; --surface-2:#1c1c1c; --fg:#ffffff;
+  --muted:#eaeaea; --faint:#c9c9c9; --line:#ffffff; --line-soft:#8d8d8d;
+  --accent:#7fc4ff; --accent-ink:#b8dcff; --soft:#00294a;
+  --lvhn:#4ae08f; --sluhn:#c79cf0; --meter:#7fc4ff;
+  --on-accent:#000000;
+  --warn-bg:#241c00; --warn-ink:#ffe08a; --warn-line:#ffffff;
+  --line-w: 2px;
+  --shadow: none;
+  color-scheme: dark;
+}
+:root[data-contrast="high"] .pill,
+:root[data-contrast="high"] .flag { border: 1px solid var(--line-soft); }
+:root[data-contrast="high"] .meter { border: 1px solid var(--line-soft); }
+:root[data-contrast="high"] .card { border-left-width: 7px; }
 
 * { box-sizing: border-box; }
 body {
@@ -67,12 +115,16 @@ body {
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 
+.headTop { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.hcBtn { padding: 6px 13px; font-size: 12.5px; font-weight: 600; background: var(--surface); color: var(--accent); border: var(--line-w) solid var(--line); border-radius: 20px; cursor: pointer; }
+.hcBtn:hover { border-color: var(--accent); }
+.hcBtn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
 h1 { font-family: var(--display); font-size: clamp(31px, 5.6vw, 44px); font-weight: 600; letter-spacing: -.012em; line-height: 1.08; margin-block: 10px 12px; }
 .lede { color: var(--muted); max-width: 64ch; font-size: 16px; }
 .lede strong { color: var(--fg); font-weight: 600; }
 
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px; }
+.panel { background: var(--surface); border: var(--line-w) solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px; }
 
 /* ---------- search ---------- */
 .fields { display: grid; grid-template-columns: 110px 1.1fr 1fr 1.3fr auto; gap: 13px; align-items: end; }
@@ -81,7 +133,7 @@ h1 { font-family: var(--display); font-size: clamp(31px, 5.6vw, 44px); font-weig
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; position: relative; }
 label { font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 input, select, button { font: inherit; font-family: var(--ui); color: var(--fg); }
-input, select { width: 100%; padding: 10px 11px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+input, select { width: 100%; padding: 10px 11px; background: var(--surface); border: var(--line-w) solid var(--line); border-radius: 8px; min-width: 0; }
 select { cursor: pointer; }
 input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, li:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
@@ -139,14 +191,14 @@ h2 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spac
 
 .layout { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
-.mapPanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.mapPanel { background: var(--surface); border: var(--line-w) solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
 @media (max-width: 920px) { .mapPanel { position: static; } }
 .mapPanel svg text { font-family: var(--ui); }
 .mapPanel svg { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
 .mapNote { margin-top: 10px; font-size: 11.5px; color: var(--faint); line-height: 1.45; }
 
 .cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--net); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--surface); border: var(--line-w) solid var(--line); border-left: 3px solid var(--net); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 .cardTop { display: flex; gap: 12px; align-items: flex-start; }
 .rank { font-family: var(--display); font-size: 20px; font-weight: 600; line-height: 1; width: 29px; height: 29px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); }
 .hName { font-size: 16.5px; font-weight: 600; letter-spacing: -.005em; }
@@ -168,7 +220,7 @@ h2 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spac
 .frow { display: grid; grid-template-columns: 112px 1fr 58px; gap: 10px; align-items: center; font-size: 12.5px; }
 .frow .fl { color: var(--muted); min-width: 0; }
 .meter { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
-.meter i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.meter i { display: block; height: 100%; background: var(--meter); border-radius: 4px; }
 .frow .fv { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); font-weight: 500; }
 .frow.na .fv, .frow.na .fl { color: var(--faint); font-weight: 400; font-style: italic; }
 
@@ -182,7 +234,7 @@ summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accen
 .flag { font-size: 12.5px; line-height: 1.5; padding: 9px 11px; border-radius: 7px; background: var(--surface-2); color: var(--muted); }
 .pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; background: var(--surface-2); color: var(--muted); }
 .pill.good { background: var(--soft); color: var(--accent-ink); }
-.notice { border: 1px solid var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); border-radius: var(--r); padding: 14px 16px; font-size: 13.5px; line-height: 1.55; }
+.notice { border: var(--line-w) solid var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); border-radius: var(--r); padding: 14px 16px; font-size: 13.5px; line-height: 1.55; }
 .notice b { font-weight: 700; }
 .notice a { color: inherit; }
 
@@ -214,7 +266,10 @@ footer a { color: var(--muted); }
 <div class="wrap">
 
   <header>
-    <p class="eyebrow">Hospital price &amp; quality &middot; Lehigh Valley</p>
+    <div class="headTop">
+      <p class="eyebrow">Hospital price &amp; quality &middot; Lehigh Valley</p>
+      <button type="button" id="hcToggle" class="hcBtn" aria-pressed="false">High contrast</button>
+    </div>
     <h1>What will this actually cost?</h1>
     <p class="lede">Lehigh Valley Health Network and St.&nbsp;Luke's publish every rate they have negotiated with every insurer. The same scan can differ <strong>14&times;</strong> between two cards at the same hospital. Rank what matters to you and compare.</p>
   </header>
@@ -343,6 +398,25 @@ footer a { color: var(--muted); }
     return getJSON(API + "/rates?service=" + encodeURIComponent(code) +
                    "&payer=" + encodeURIComponent(payer));
   }
+
+  /* ---------------- high contrast ---------------- */
+
+  (function highContrast() {
+    var btn = $("hcToggle"), root = document.documentElement;
+    function apply(on) {
+      if (on) { root.setAttribute("data-contrast", "high"); }
+      else { root.removeAttribute("data-contrast"); }
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.textContent = on ? "High contrast on" : "High contrast";
+      try { localStorage.setItem("lvp-contrast", on ? "high" : "normal"); } catch (e) { /* private window */ }
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("lvp-contrast"); } catch (e) { /* blocked */ }
+    apply(saved === "high");
+    btn.addEventListener("click", function () {
+      apply(root.getAttribute("data-contrast") !== "high");
+    });
+  })();
 
   /* ---------------- ranking factors ---------------- */
 
@@ -712,6 +786,17 @@ footer a { color: var(--muted); }
       '<span><i class="swatch" style="background:var(--lvhn)"></i>Lehigh Valley Health Network</span>' +
       '<span><i class="swatch" style="background:var(--sluhn)"></i>St. Luke\'s</span>' +
       "</div></div>");
+
+    var anyRated = Object.keys(D.quality || {}).some(function (k) {
+      return (D.quality[k] || {}).rated;
+    });
+    if (!anyRated) {
+      out.push('<div class="notice" style="margin-top:14px"><b>Quality data did not load.</b> ' +
+        "Only price and distance are being scored. " +
+        (API ? "The deployed API is serving an older metadata record - redeploy without --skip-data."
+             : "Hard-reload the page (Ctrl+Shift+R) to clear a cached data file.") +
+        "</div>");
+    }
 
     if (c.isExample) {
       out.push('<div class="flag" style="margin-top:14px">Example search &mdash; an MRI of the lumbar spine on Aetna, from Bethlehem. Change any field and search again.</div>');
