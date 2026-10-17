@@ -1,0 +1,802 @@
+<title>Lehigh Valley Price Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+/* Layout: one 1120px column — search band on top, then map beside a ranked
+   list of hospitals, stacking to one column at phone width. */
+:root {
+  --bg:        #f2f6f7;
+  --surface:   #ffffff;
+  --surface-2: #e8eff1;
+  --fg:        #111c21;
+  --muted:     #566a74;
+  --faint:     #7c8d96;
+  --line:      #d5e0e4;
+  --line-soft: #e4ecee;
+  --accent:    #0d6d62;
+  --accent-ink:#0a564d;
+  --soft:      #dcefec;
+  --lvhn:      #0d8b7d;   /* validated categorical pair, light mode */
+  --sluhn:     #b5490b;
+  --warn-bg:   #fdf3e3;
+  --warn-ink:  #7a5212;
+  --warn-line: #e8d3a8;
+  --on-accent: #ffffff;
+  --shadow:    0 1px 2px rgba(17,28,33,.06), 0 8px 24px -16px rgba(17,28,33,.28);
+  --r:         10px;
+  --display:   "Newsreader", Georgia, "Times New Roman", serif;
+  --ui:        "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #0c1215;
+    --surface:   #141d21;
+    --surface-2: #1b262b;
+    --fg:        #e7eef0;
+    --muted:     #94a7b0;
+    --faint:     #7b8e97;
+    --line:      #26343a;
+    --line-soft: #1e2a2f;
+    --accent:    #4cc3b4;
+    --accent-ink:#8fdcd1;
+    --soft:      #11332e;
+    --lvhn:      #19a493;   /* validated categorical pair, dark mode */
+    --sluhn:     #cc6f30;
+    --warn-bg:   #2a2213;
+    --warn-ink:  #e3c27f;
+    --warn-line: #4a3c1d;
+    --on-accent: #04201c;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #0c1215;
+  --surface:   #141d21;
+  --surface-2: #1b262b;
+  --fg:        #e7eef0;
+  --muted:     #94a7b0;
+  --faint:     #7b8e97;
+  --line:      #26343a;
+  --line-soft: #1e2a2f;
+  --accent:    #4cc3b4;
+  --accent-ink:#8fdcd1;
+  --soft:      #11332e;
+  --lvhn:      #19a493;
+  --sluhn:     #cc6f30;
+  --warn-bg:   #2a2213;
+  --warn-ink:  #e3c27f;
+  --warn-line: #4a3c1d;
+  --on-accent: #04201c;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 36px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+
+/* ---------- header ---------- */
+.eyebrow {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1 {
+  font-family: var(--display);
+  font-size: clamp(32px, 6vw, 46px);
+  font-weight: 600;
+  letter-spacing: -.012em;
+  line-height: 1.08;
+  margin-block: 10px 12px;
+}
+.lede { color: var(--muted); max-width: 62ch; font-size: 16px; }
+.lede strong { color: var(--fg); font-weight: 600; }
+
+/* ---------- search ---------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.fields {
+  display: grid;
+  grid-template-columns: 140px 1fr 1.25fr auto;
+  gap: 14px;
+  align-items: end;
+}
+@media (max-width: 860px) { .fields { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .fields { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; position: relative; }
+label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+input, select, button {
+  font: inherit;
+  font-family: var(--ui);
+  color: var(--fg);
+}
+input, select {
+  width: 100%;
+  padding: 10px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+select { cursor: pointer; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.field.invalid input, .field.invalid select { border-color: var(--sluhn); }
+
+button.go {
+  padding: 10px 22px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button.go:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+@media (max-width: 520px) { button.go { width: 100%; } }
+
+.formError {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+/* ---------- combobox ---------- */
+.combo-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 290px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+.combo-list li { padding: 7px 9px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+.combo-list li[aria-selected="true"] { background: var(--soft); }
+.combo-list .code { font-family: var(--mono); font-size: 11.5px; color: var(--muted); flex: none; }
+.combo-list .nm { min-width: 0; }
+.combo-list .cat { margin-left: auto; font-size: 11px; color: var(--faint); flex: none; padding-left: 8px; }
+.combo-empty { padding: 10px; color: var(--muted); font-size: 13.5px; }
+
+/* ---------- results ---------- */
+.resultsHead { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline; justify-content: space-between; }
+h2 { font-family: var(--display); font-size: 25px; font-weight: 600; letter-spacing: -.01em; }
+.sub { color: var(--muted); font-size: 13.5px; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.mapPanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 900px) { .mapPanel { position: static; } }
+.mapPanel svg text { font-family: var(--ui); }
+.mapPanel svg { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
+.mapNote { margin-top: 10px; font-size: 11.5px; color: var(--faint); line-height: 1.45; }
+
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--net);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cardTop { display: flex; gap: 12px; align-items: flex-start; }
+.rank {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--fg);
+}
+.hName { font-size: 16.5px; font-weight: 600; letter-spacing: -.005em; }
+.hMeta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.hDist { margin-left: auto; text-align: right; flex: none; }
+.hDist b { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; display: block; }
+.hDist span { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+
+.priceRow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.price { font-size: 29px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.priceLbl { font-size: 12.5px; color: var(--muted); }
+
+/* range bar — shared 0-based scale across all three hospitals */
+.bar { position: relative; height: 22px; background: var(--surface-2); border-radius: 5px; overflow: visible; }
+.bar .span { position: absolute; top: 5px; height: 12px; background: var(--net); border-radius: 4px; min-width: 4px; }
+.bar .mid { position: absolute; top: 1px; width: 3px; height: 20px; border-radius: 2px; background: var(--fg); box-shadow: 0 0 0 2px var(--surface); }
+.barScale { display: flex; justify-content: space-between; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; margin-top: 3px; }
+
+.tip {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.45;
+  max-width: 250px;
+  box-shadow: var(--shadow);
+}
+.tip b { font-variant-numeric: tabular-nums; }
+
+details { border-top: 1px solid var(--line-soft); padding-top: 10px; }
+summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accent); }
+.plans { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.plans li { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+.plans .pn { color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.plans .pv { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; flex: none; }
+
+.flag {
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 9px 11px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.notice {
+  border: 1px solid var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.notice b { font-weight: 700; }
+
+/* ---------- steps ---------- */
+.steps { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 22px; }
+.steps ol { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 14px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
+.steps li::before {
+  content: counter(s);
+  grid-column: 1;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--accent-ink);
+}
+.steps h3 { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
+.steps p { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+.steps code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--fg); }
+
+footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 12.5px; color: var(--faint); line-height: 1.6; display: flex; flex-direction: column; gap: 8px; }
+footer b { color: var(--muted); font-weight: 600; }
+.skeleton { color: var(--muted); padding: 40px 0; text-align: center; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Hospital price transparency · Lehigh Valley</p>
+    <h1>What will this actually cost?</h1>
+    <p class="lede">Lehigh Valley Health Network and St.&nbsp;Luke's publish every rate they have negotiated with every insurer. The same scan can differ <strong>14×</strong> between two cards at the same hospital. Pick your insurer and procedure to compare.</p>
+  </header>
+
+  <form class="panel" id="searchForm" novalidate>
+    <div class="fields">
+      <div class="field" id="f-zip">
+        <label for="zip">ZIP code</label>
+        <input id="zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="18015">
+      </div>
+
+      <div class="field" id="f-payer">
+        <label for="payer">Insurance provider</label>
+        <select id="payer" name="payer"><option value="">Loading…</option></select>
+      </div>
+
+      <div class="field" id="f-proc">
+        <label for="proc">Medical procedure</label>
+        <input id="proc" name="proc" role="combobox" aria-expanded="false" aria-autocomplete="list"
+               aria-controls="procList" autocomplete="off" placeholder="Type to search 76 procedures">
+        <ul class="combo-list" id="procList" role="listbox" aria-label="Procedures" hidden></ul>
+      </div>
+
+      <div class="field">
+        <button type="submit" class="go">Search</button>
+      </div>
+    </div>
+    <p class="formError" id="formError" role="alert" hidden></p>
+  </form>
+
+  <section id="results" aria-live="polite">
+    <p class="skeleton">Loading price data…</p>
+  </section>
+
+  <section class="steps" id="steps" hidden>
+    <h2>Before you go</h2>
+    <p class="sub" style="margin-top:6px">A published rate is a starting point, not a bill. These six steps are what actually change what you pay.</p>
+    <ol id="stepList"></ol>
+  </section>
+
+  <footer>
+    <p><b>Source.</b> CMS 45&nbsp;CFR&nbsp;180.50 machine-readable standard charge files, version 3.0.0 — Lehigh Valley Hospital (published 2026-07-01) and St.&nbsp;Luke's Bethlehem and Allentown campuses (2026-02-26). 6,856 negotiated rates across 76 shoppable services.</p>
+    <p><b>Not a quote.</b> Figures are negotiated allowed amounts between hospital and insurer. They are not your out-of-pocket cost and this page is not affiliated with either health network.</p>
+    <p id="footNote"></p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var D = null, SVC = [], BYCODE = {}, HOSP = {}, picked = null, tipEl = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (n) {
+    return "$" + Math.round(n).toLocaleString("en-US");
+  };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  };
+
+  /* ---------------- data ---------------- */
+
+  fetch("prices.json")
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      D = d;
+      SVC = d.services;
+      d.services.forEach(function (s) { BYCODE[s.code] = s; });
+      d.hospitals.forEach(function (h) { HOSP[h.id] = h; });
+      buildPayers();
+      // Open in a realistic working state rather than an empty shell.
+      $("zip").value = "18015";
+      $("payer").value = "Aetna";
+      pick(BYCODE["72148"]);
+      run(true);
+    })
+    .catch(function () {
+      $("results").innerHTML =
+        '<div class="notice">Could not load the price data file. Reload the page to try again.</div>';
+    });
+
+  function buildPayers() {
+    var sel = $("payer");
+    var groups = [
+      ["Contracted with both networks", function (p) { return p.nets.length === 2; }],
+      ["Lehigh Valley Health Network only", function (p) { return p.nets.length === 1 && p.nets[0] === "LVHN"; }],
+      ["St. Luke's only", function (p) { return p.nets.length === 1 && p.nets[0] === "SLUHN"; }]
+    ];
+    var html = '<option value="">Select your insurer…</option>';
+    groups.forEach(function (g) {
+      var list = D.payers.filter(g[1]);
+      if (!list.length) return;
+      html += '<optgroup label="' + esc(g[0]) + '">';
+      list.forEach(function (p) { html += '<option value="' + esc(p.n) + '">' + esc(p.n) + "</option>"; });
+      html += "</optgroup>";
+    });
+    sel.innerHTML = html;
+  }
+
+  /* ---------------- procedure combobox ---------------- */
+
+  var input = $("proc"), list = $("procList"), active = -1, shown = [];
+
+  function labelFor(s) {
+    return s.name + "  (" + (s.type === "MS-DRG" ? "DRG " : "") + s.code + ")";
+  }
+  function pick(s) {
+    picked = s || null;
+    if (s) input.value = labelFor(s);
+    close();
+  }
+  function close() {
+    list.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    active = -1;
+  }
+  function matches(q) {
+    q = q.trim().toLowerCase();
+    if (!q) return SVC.slice(0, 60);
+    return SVC.filter(function (s) {
+      return (s.name + " " + s.code + " " + s.cat).toLowerCase().indexOf(q) > -1;
+    }).slice(0, 60);
+  }
+  function open() {
+    // A picked service fills the box with its own label; don't filter against that.
+    shown = matches(picked && input.value === labelFor(picked) ? "" : input.value);
+    if (!shown.length) {
+      list.innerHTML = '<li class="combo-empty" role="presentation">No procedure matches that. Try “MRI”, “colonoscopy” or a CPT code.</li>';
+    } else {
+      list.innerHTML = shown.map(function (s, i) {
+        return '<li role="option" id="opt' + i + '" aria-selected="false" data-i="' + i + '">' +
+          '<span class="code">' + (s.type === "MS-DRG" ? "DRG&nbsp;" : "") + esc(s.code) + "</span>" +
+          '<span class="nm">' + esc(s.name) + "</span>" +
+          '<span class="cat">' + esc(s.cat) + "</span></li>";
+      }).join("");
+    }
+    list.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    active = -1;
+  }
+  function highlight(i) {
+    var items = list.querySelectorAll('li[role="option"]');
+    if (!items.length) return;
+    if (active > -1 && items[active]) items[active].setAttribute("aria-selected", "false");
+    active = (i + items.length) % items.length;
+    items[active].setAttribute("aria-selected", "true");
+    input.setAttribute("aria-activedescendant", "opt" + active);
+    items[active].scrollIntoView({ block: "nearest" });
+  }
+
+  input.addEventListener("input", function () { picked = null; open(); });
+  input.addEventListener("focus", open);
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) open(); highlight(active + 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); if (list.hidden) open(); highlight(active - 1); }
+    else if (e.key === "Enter") {
+      if (!list.hidden && active > -1) { e.preventDefault(); pick(shown[active]); }
+    } else if (e.key === "Escape") { close(); }
+  });
+  list.addEventListener("mousedown", function (e) {
+    var li = e.target.closest("li[data-i]");
+    if (li) { e.preventDefault(); pick(shown[+li.dataset.i]); }
+  });
+  document.addEventListener("click", function (e) {
+    if (!list.hidden && !list.contains(e.target) && e.target !== input) close();
+  });
+
+  /* ---------------- geo ---------------- */
+
+  var K = Math.cos(40.6 * Math.PI / 180);
+  function prj(lat, lon) { return [lon * K, -lat]; }
+  function miles(a, b, c, d) {
+    var R = 3958.8, p = Math.PI / 180;
+    var dLa = (c - a) * p, dLo = (d - b) * p;
+    var x = Math.sin(dLa / 2) * Math.sin(dLa / 2) +
+      Math.cos(a * p) * Math.cos(c * p) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  }
+
+  /* ---------------- search ---------------- */
+
+  $("searchForm").addEventListener("submit", function (e) { e.preventDefault(); run(false); });
+
+  function run(isExample) {
+    if (!D) return;
+    var zip = $("zip").value.trim();
+    var payer = $("payer").value;
+    var missing = [];
+    ["f-zip", "f-payer", "f-proc"].forEach(function (id) { $(id).classList.remove("invalid"); });
+
+    if (!/^\d{5}$/.test(zip)) { missing.push("a 5-digit ZIP code"); $("f-zip").classList.add("invalid"); }
+    if (!payer) { missing.push("your insurance provider"); $("f-payer").classList.add("invalid"); }
+    if (!picked) { missing.push("a medical procedure from the list"); $("f-proc").classList.add("invalid"); }
+
+    var err = $("formError");
+    if (missing.length) {
+      err.textContent = "Please enter " + missing.join(", ").replace(/, ([^,]*)$/, " and $1") + " before searching.";
+      err.hidden = false;
+      return;
+    }
+    err.hidden = true;
+    render(zip, payer, picked, isExample);
+  }
+
+  /* ---------------- render ---------------- */
+
+  function render(zip, payer, svc, isExample) {
+    var here = D.zips[zip] || null;
+    var priced = D.prices[svc.code + "|" + payer] || {};
+    var payerRec = D.payers.filter(function (p) { return p.n === payer; })[0] || { nets: [] };
+
+    var rows = Object.keys(priced).map(function (hid) {
+      var h = HOSP[hid], e = priced[hid];
+      return {
+        h: h, e: e,
+        dist: here ? miles(here[0], here[1], h.lat, h.lon) : null
+      };
+    }).sort(function (a, b) { return a.e.mid - b.e.mid; }).slice(0, 3);
+
+    var out = [];
+
+    out.push('<div class="resultsHead"><div>' +
+      "<h2>" + esc(svc.name) + "</h2>" +
+      '<p class="sub">' + (svc.type === "MS-DRG" ? "MS-DRG " : "CPT/HCPCS ") + esc(svc.code) +
+      " · " + esc(svc.cat) + " · " + esc(payer) +
+      (here ? " · near " + esc(zip) : " · ZIP " + esc(zip) + " is outside the covered area, so distances are hidden") +
+      "</p></div>" +
+      '<div class="legend">' +
+      '<span><i class="swatch" style="background:var(--lvhn)"></i>Lehigh Valley Health Network</span>' +
+      '<span><i class="swatch" style="background:var(--sluhn)"></i>St. Luke\'s</span>' +
+      "</div></div>");
+
+    if (isExample) {
+      out.push('<div class="flag" style="margin-top:14px">Showing an example search — an MRI of the lumbar spine on Aetna, from Bethlehem. Change any field and search again.</div>');
+    }
+
+    if (!rows.length) {
+      out.push('<div class="notice" style="margin-top:16px"><b>No published rate.</b> Neither network discloses a dollar rate for ' +
+        esc(svc.name) + " under " + esc(payer) +
+        ". Hospitals may price it as a percentage of billed charges instead, which cannot be resolved to a dollar figure. Try another insurer or procedure.</div>");
+      $("results").innerHTML = out.join("");
+      $("steps").hidden = true;
+      return;
+    }
+
+    var maxHi = Math.max.apply(null, rows.map(function (r) { return r.e.hi; }));
+    var scale = maxHi * 1.06;
+
+    out.push('<div class="layout" style="margin-top:16px">');
+    out.push('<div class="mapPanel">' + mapSVG(rows, here) + '<p class="mapNote">' +
+      (here ? "Your ZIP (" + esc(zip) + ") is marked with a ring. " : "") +
+      "Lehigh and Northampton counties are shaded. LVHN's ten Lehigh Valley sites share one published price, so the network appears once, pinned at Cedar Crest.</p></div>");
+
+    out.push('<ol class="cards">');
+    rows.forEach(function (r, i) {
+      var h = r.h, e = r.e;
+      var hue = h.net === "LVHN" ? "var(--lvhn)" : "var(--sluhn)";
+      var lo = (e.lo / scale) * 100, wide = ((e.hi - e.lo) / scale) * 100, mid = (e.mid / scale) * 100;
+      var spread = e.hi > e.lo;
+
+      out.push('<li class="card" style="--net:' + hue + '">');
+      out.push('<div class="cardTop"><div class="rank">' + (i + 1) + "</div><div style=\"min-width:0\">" +
+        '<div class="hName">' + esc(h.name) + (h.campus && h.campus !== "All licensed locations" ? " — " + esc(h.campus) : "") + "</div>" +
+        '<div class="hMeta">' + esc(h.addr) + "</div></div>" +
+        (r.dist !== null ? '<div class="hDist"><b>' + r.dist.toFixed(1) + "</b><span>miles</span></div>" : "") +
+        "</div>");
+
+      out.push('<div><div class="priceRow"><div class="price">' + money(e.mid) + "</div>" +
+        '<div class="priceLbl">typical negotiated rate · <span class="pill">' + esc(e.set) + "</span></div></div>");
+
+      out.push('<div class="bar" data-h="' + esc(h.id) + '" tabindex="0" role="img" aria-label="Range ' +
+        money(e.lo) + " to " + money(e.hi) + ", typical " + money(e.mid) + ' across ' + e.n + ' published rates">' +
+        '<div class="span" style="left:' + lo.toFixed(2) + "%;width:" + Math.max(wide, 0.6).toFixed(2) + '%"></div>' +
+        '<div class="mid" style="left:calc(' + mid.toFixed(2) + '% - 1.5px)"></div></div>');
+      out.push('<div class="barScale"><span>$0</span><span>' +
+        (spread ? money(e.lo) + " – " + money(e.hi) + " across " + e.n + " rates" : e.n + " published rate" + (e.n === 1 ? "" : "s")) +
+        "</span><span>" + money(scale) + "</span></div></div>");
+
+      if (e.cash) {
+        out.push('<div class="flag">Uninsured cash price published by this hospital: <b>' + money(e.cash) + "</b></div>");
+      }
+      if (h.id === "LVH-ALL") {
+        out.push('<div class="flag">One price covers all ten LVHN sites in the valley — Cedar Crest, Muhlenberg, Hecktown Oaks, 17th Street and the rest. LVHN does not publish which rates are facility versus physician fees.</div>');
+      }
+
+      out.push("<details><summary>Rates by plan (" + e.plans.length + ")</summary><ul class=\"plans\">");
+      e.plans.forEach(function (p) {
+        out.push('<li><span class="pn">' + esc(p.p) + '</span><span class="pv">' +
+          (p.hi > p.lo ? money(p.lo) + " – " + money(p.hi) : money(p.lo)) + "</span></li>");
+      });
+      out.push("</ul></details>");
+      out.push("</li>");
+    });
+    out.push("</ol></div>");
+
+    // What the number is, and is not.
+    out.push('<div class="notice" style="margin-top:18px"><b>This is not your copay.</b> ' +
+      "The figure above is the allowed amount — the total the hospital collects from you and " + esc(payer) +
+      " combined. Your share depends on your deductible, coinsurance and out-of-pocket maximum, none of which appear in any published file. " +
+      "The bar shows the full published range because the rate also varies by plan within " + esc(payer) + ".</div>");
+
+    if (payerRec.nets.length === 1) {
+      var only = payerRec.nets[0] === "LVHN" ? "Lehigh Valley Health Network" : "St. Luke's";
+      out.push('<div class="notice" style="margin-top:12px"><b>One network only.</b> ' + esc(payer) +
+        " appears only in " + esc(only) + "'s file, so there is nothing to compare it against. " +
+        "Switch to an insurer listed under “Contracted with both networks” for a head-to-head.</div>");
+    }
+
+    $("results").innerHTML = out.join("");
+    wireTips(rows, scale);
+    steps(svc, payer, rows);
+    $("footNote").textContent =
+      "Showing " + rows.length + " of 3 hospitals in the subset. Ranked by the median published rate; the lowest single rate may belong to a plan you do not hold.";
+  }
+
+  /* ---------------- hover layer ---------------- */
+
+  function wireTips(rows, scale) {
+    var byId = {};
+    rows.forEach(function (r) { byId[r.h.id] = r; });
+
+    function show(el, ev) {
+      var r = byId[el.dataset.h];
+      if (!r) return;
+      hide();
+      tipEl = document.createElement("div");
+      tipEl.className = "tip";
+      var cheapest = r.e.plans[0];
+      tipEl.innerHTML = "<b>" + money(r.e.lo) + " – " + money(r.e.hi) + "</b> across " + r.e.n +
+        " published rate" + (r.e.n === 1 ? "" : "s") + "<br>Typical <b>" + money(r.e.mid) + "</b>" +
+        "<br>Lowest plan: " + esc(cheapest.p) + " at <b>" + money(cheapest.lo) + "</b>" +
+        "<br>Priced as " + esc(r.e.meth);
+      document.body.appendChild(tipEl);
+      var box = el.getBoundingClientRect();
+      var x = (ev && ev.clientX ? ev.clientX : box.left + box.width / 2);
+      tipEl.style.left = Math.min(Math.max(10, x - tipEl.offsetWidth / 2), innerWidth - tipEl.offsetWidth - 10) + "px";
+      var top = box.top - tipEl.offsetHeight - 9;
+      tipEl.style.top = (top < 8 ? box.bottom + 9 : top) + "px";
+    }
+    function hide() { if (tipEl) { tipEl.remove(); tipEl = null; } }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".bar[data-h]"), function (el) {
+      el.addEventListener("mouseenter", function (e) { show(el, e); });
+      el.addEventListener("mousemove", function (e) { if (tipEl) show(el, e); });
+      el.addEventListener("mouseleave", hide);
+      el.addEventListener("focus", function () { show(el, null); });
+      el.addEventListener("blur", hide);
+    });
+    window.addEventListener("scroll", hide, { passive: true });
+  }
+
+  /* ---------------- map ---------------- */
+
+  function mapSVG(rows, here) {
+    var W = 1000, pts = [];
+    rows.forEach(function (r) { pts.push(prj(r.h.lat, r.h.lon)); });
+    if (here) pts.push(prj(here[0], here[1]));
+
+    var cx = pts.reduce(function (a, p) { return a + p[0]; }, 0) / pts.length;
+    var cy = pts.reduce(function (a, p) { return a + p[1]; }, 0) / pts.length;
+    var dx = 0, dy = 0;
+    pts.forEach(function (p) {
+      dx = Math.max(dx, Math.abs(p[0] - cx));
+      dy = Math.max(dy, Math.abs(p[1] - cy));
+    });
+    var AR = 0.78;                       // map height / width
+    var halfW = Math.max(dx * 1.6, 0.30);
+    var halfH = Math.max(dy * 1.6, 0.22);
+    if (halfH / halfW > AR) { halfW = halfH / AR; } else { halfH = halfW * AR; }
+    var x0 = cx - halfW, y0 = cy - halfH, spanX = halfW * 2, spanY = halfH * 2;
+    var H = Math.round(W * (spanY / spanX));
+    var sx = function (x) { return ((x - x0) / spanX) * W; };
+    var sy = function (y) { return ((y - y0) / spanY) * H; };
+    var P = function (lat, lon) { var p = prj(lat, lon); return [sx(p[0]), sy(p[1])]; };
+
+    var s = ['<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Map of hospital locations in the Lehigh Valley">'];
+    s.push('<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="var(--surface-2)"/>');
+
+    D.counties.forEach(function (c) {
+      var d = "M" + c.d.slice(1, -1).split("L").map(function (seg) {
+        var a = seg.split(" ");
+        return sx(parseFloat(a[0])).toFixed(1) + " " + sy(parseFloat(a[1])).toFixed(1);
+      }).join("L") + "Z";
+      s.push('<path d="' + d + '" fill="' + (c.core ? "var(--soft)" : "var(--surface)") +
+        '" stroke="var(--line)" stroke-width="' + (c.core ? 2 : 1.2) + '" stroke-linejoin="round" opacity="' + (c.core ? 1 : .75) + '"/>');
+    });
+
+    D.cities.forEach(function (c) {
+      var p = P(c.lat, c.lon);
+      if (p[0] < 24 || p[0] > W - 24 || p[1] < 18 || p[1] > H - 10) return;
+      s.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.5" fill="var(--faint)"/>');
+      s.push('<text x="' + (p[0] + 7).toFixed(1) + '" y="' + (p[1] + 4).toFixed(1) +
+        '" font-size="15" fill="var(--muted)">' + esc(c.n) + "</text>");
+    });
+
+    if (here) {
+      var hp = P(here[0], here[1]);
+      s.push('<circle cx="' + hp[0].toFixed(1) + '" cy="' + hp[1].toFixed(1) +
+        '" r="11" fill="none" stroke="var(--fg)" stroke-width="2.5"/>');
+      s.push('<circle cx="' + hp[0].toFixed(1) + '" cy="' + hp[1].toFixed(1) + '" r="3.5" fill="var(--fg)"/>');
+      rows.forEach(function (r) {
+        var p = P(r.h.lat, r.h.lon);
+        s.push('<line x1="' + hp[0].toFixed(1) + '" y1="' + hp[1].toFixed(1) + '" x2="' + p[0].toFixed(1) +
+          '" y2="' + p[1].toFixed(1) + '" stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="5 5" opacity=".65"/>');
+      });
+    }
+
+    rows.forEach(function (r, i) {
+      var p = P(r.h.lat, r.h.lon);
+      var hue = r.h.net === "LVHN" ? "var(--lvhn)" : "var(--sluhn)";
+      s.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) +
+        '" r="15" fill="' + hue + '" stroke="var(--surface)" stroke-width="3"/>');
+      s.push('<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 6).toFixed(1) +
+        '" font-size="17" font-weight="700" fill="var(--surface)" text-anchor="middle">' + (i + 1) + "</text>");
+    });
+
+    s.push("</svg>");
+    return s.join("");
+  }
+
+  /* ---------------- next steps ---------------- */
+
+  function steps(svc, payer, rows) {
+    var codeLbl = (svc.type === "MS-DRG" ? "MS-DRG " : "CPT ") + svc.code;
+    var best = rows[0];
+    var items = [
+      ["Confirm the hospital is in network for your exact plan",
+        "Being listed under " + esc(payer) + " is not the same as being covered by your particular plan. Call the number on the back of your card and confirm " + best.h.name + " is in network for the plan you hold."],
+      ["Ask for the procedure code in writing",
+        "Request that the scheduler confirm <code>" + codeLbl + "</code> is the code they will bill. A different code is a different price, and this is the single most common reason an estimate misses."],
+      ["Request a Good Faith Estimate",
+        "Under the No Surprises Act, if you are uninsured or paying cash you are entitled to a written Good Faith Estimate before a scheduled service. Ask for it at least three days ahead."],
+      ["Ask whether the facility fee and physician fee are billed separately",
+        "Hospital outpatient departments usually bill both. St. Luke's publishes facility rates only; LVHN does not label which is which, so assume a separate physician bill is coming."],
+      ["Check whether prior authorization is required",
+        esc(payer) + " may require approval before the service. Without it a covered procedure can be denied in full, which makes the negotiated rate irrelevant."],
+      ["Find out where you stand against your deductible",
+        "The " + money(best.e.mid) + " shown is the allowed amount. If your deductible is unmet you may owe all of it; past your out-of-pocket maximum you may owe none. Your insurer's portal shows the current balance."]
+    ];
+    $("stepList").innerHTML = items.map(function (it) {
+      return "<li><div><h3>" + esc(it[0]) + "</h3><p>" + it[1] + "</p></div></li>";
+    }).join("");
+    $("steps").hidden = false;
+  }
+})();
+</script>
