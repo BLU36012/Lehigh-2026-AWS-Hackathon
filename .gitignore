@@ -1,0 +1,15 @@
+# AWS credentials — never commit
+.aws/
+*.pem
+
+# build output
+dist/
+out/
+*.class
+
+# python
+__pycache__/
+*.pyc
+
+# intermediate pipeline artifacts
+staged.jsonl

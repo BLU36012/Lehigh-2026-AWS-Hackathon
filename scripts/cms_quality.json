@@ -1,0 +1,68 @@
+{
+ "LVH-ALL": {
+  "rated": true,
+  "ccn": "390133",
+  "cms_name": "LEHIGH VALLEY HOSPITAL",
+  "stars": 4,
+  "ownership": "Voluntary non-profit - Private",
+  "type": "Acute Care Hospitals",
+  "emergency": "Yes",
+  "birthing_friendly": true,
+  "safety": {
+   "score": 75.0,
+   "better": 4,
+   "same": 4,
+   "worse": 0,
+   "measures": 8
+  },
+  "mortality": {
+   "score": 75.0,
+   "better": 4,
+   "same": 4,
+   "worse": 0,
+   "measures": 8
+  },
+  "readmission": {
+   "score": 36.4,
+   "better": 0,
+   "same": 8,
+   "worse": 3,
+   "measures": 11
+  }
+ },
+ "SLH-BETH": {
+  "rated": true,
+  "ccn": "390049",
+  "cms_name": "ST LUKES HOSPITAL",
+  "stars": 5,
+  "ownership": "Voluntary non-profit - Private",
+  "type": "Acute Care Hospitals",
+  "emergency": "Yes",
+  "birthing_friendly": true,
+  "safety": {
+   "score": 81.2,
+   "better": 5,
+   "same": 3,
+   "worse": 0,
+   "measures": 8
+  },
+  "mortality": {
+   "score": 68.8,
+   "better": 3,
+   "same": 5,
+   "worse": 0,
+   "measures": 8
+  },
+  "readmission": {
+   "score": 36.4,
+   "better": 0,
+   "same": 8,
+   "worse": 3,
+   "measures": 11
+  }
+ },
+ "SLH-ALLE": {
+  "rated": false,
+  "note": "CMS Care Compare does not publish a separate rating for this campus; it has no CCN of its own in the dataset."
+ }
+}

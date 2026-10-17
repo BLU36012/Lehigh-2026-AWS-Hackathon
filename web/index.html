@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&display=swap">
 
 <style>
-/* Layout: one 1120px column — search band on top, then map beside a ranked
-   list of hospitals, stacking to one column at phone width. */
+/* Layout: one 1120px column — search band, then a priority ranker, then
+   tabbed output with the map beside a ranked list, stacking at phone width. */
 :root {
   --bg:        #f2f6f7;
   --surface:   #ffffff;
@@ -32,175 +32,67 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:        #0c1215;
-    --surface:   #141d21;
-    --surface-2: #1b262b;
-    --fg:        #e7eef0;
-    --muted:     #94a7b0;
-    --faint:     #7b8e97;
-    --line:      #26343a;
-    --line-soft: #1e2a2f;
-    --accent:    #4cc3b4;
-    --accent-ink:#8fdcd1;
-    --soft:      #11332e;
-    --lvhn:      #19a493;   /* validated categorical pair, dark mode */
-    --sluhn:     #cc6f30;
-    --warn-bg:   #2a2213;
-    --warn-ink:  #e3c27f;
-    --warn-line: #4a3c1d;
-    --on-accent: #04201c;
-    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    --bg:#0c1215; --surface:#141d21; --surface-2:#1b262b; --fg:#e7eef0;
+    --muted:#94a7b0; --faint:#7b8e97; --line:#26343a; --line-soft:#1e2a2f;
+    --accent:#4cc3b4; --accent-ink:#8fdcd1; --soft:#11332e;
+    --lvhn:#19a493; --sluhn:#cc6f30;
+    --warn-bg:#2a2213; --warn-ink:#e3c27f; --warn-line:#4a3c1d;
+    --on-accent:#04201c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg:        #0c1215;
-  --surface:   #141d21;
-  --surface-2: #1b262b;
-  --fg:        #e7eef0;
-  --muted:     #94a7b0;
-  --faint:     #7b8e97;
-  --line:      #26343a;
-  --line-soft: #1e2a2f;
-  --accent:    #4cc3b4;
-  --accent-ink:#8fdcd1;
-  --soft:      #11332e;
-  --lvhn:      #19a493;
-  --sluhn:     #cc6f30;
-  --warn-bg:   #2a2213;
-  --warn-ink:  #e3c27f;
-  --warn-line: #4a3c1d;
-  --on-accent: #04201c;
-  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  --bg:#0c1215; --surface:#141d21; --surface-2:#1b262b; --fg:#e7eef0;
+  --muted:#94a7b0; --faint:#7b8e97; --line:#26343a; --line-soft:#1e2a2f;
+  --accent:#4cc3b4; --accent-ink:#8fdcd1; --soft:#11332e;
+  --lvhn:#19a493; --sluhn:#cc6f30;
+  --warn-bg:#2a2213; --warn-ink:#e3c27f; --warn-line:#4a3c1d;
+  --on-accent:#04201c;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--ui);
-  font-size: 15px;
-  line-height: 1.5;
+  background: var(--bg); color: var(--fg);
+  font-family: var(--ui); font-size: 15px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 .wrap {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding-inline: 20px;
-  padding-block: 36px 56px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+  max-width: 1120px; margin: 0 auto;
+  padding-inline: 20px; padding-block: 36px 56px;
+  display: flex; flex-direction: column; gap: 24px;
 }
-h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 
-/* ---------- header ---------- */
-.eyebrow {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-h1 {
-  font-family: var(--display);
-  font-size: clamp(32px, 6vw, 46px);
-  font-weight: 600;
-  letter-spacing: -.012em;
-  line-height: 1.08;
-  margin-block: 10px 12px;
-}
-.lede { color: var(--muted); max-width: 62ch; font-size: 16px; }
+.eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-size: clamp(31px, 5.6vw, 44px); font-weight: 600; letter-spacing: -.012em; line-height: 1.08; margin-block: 10px 12px; }
+.lede { color: var(--muted); max-width: 64ch; font-size: 16px; }
 .lede strong { color: var(--fg); font-weight: 600; }
 
-/* ---------- search ---------- */
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  box-shadow: var(--shadow);
-  padding: 20px;
-}
-.fields {
-  display: grid;
-  grid-template-columns: 140px 1fr 1.25fr auto;
-  gap: 14px;
-  align-items: end;
-}
-@media (max-width: 860px) { .fields { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .fields { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px; }
 
+/* ---------- search ---------- */
+.fields { display: grid; grid-template-columns: 110px 1.1fr 1fr 1.3fr auto; gap: 13px; align-items: end; }
+@media (max-width: 980px) { .fields { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 540px) { .fields { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; position: relative; }
-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-input, select, button {
-  font: inherit;
-  font-family: var(--ui);
-  color: var(--fg);
-}
-input, select {
-  width: 100%;
-  padding: 10px 11px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  min-width: 0;
-}
+label { font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+input, select, button { font: inherit; font-family: var(--ui); color: var(--fg); }
+input, select { width: 100%; padding: 10px 11px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
 select { cursor: pointer; }
-input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, li:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
 .field.invalid input, .field.invalid select { border-color: var(--sluhn); }
-
-button.go {
-  padding: 10px 22px;
-  background: var(--accent);
-  color: var(--on-accent);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
+button.go { padding: 10px 22px; background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 button.go:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
-@media (max-width: 520px) { button.go { width: 100%; } }
+@media (max-width: 540px) { button.go { width: 100%; } }
+.formError { margin-top: 14px; padding: 10px 12px; border: 1px solid var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; font-size: 13.5px; font-weight: 500; }
 
-.formError {
-  margin-top: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--warn-line);
-  background: var(--warn-bg);
-  color: var(--warn-ink);
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 500;
-}
-
-/* ---------- combobox ---------- */
-.combo-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  margin: 4px 0 0;
-  padding: 4px;
-  list-style: none;
-  max-height: 290px;
-  overflow-y: auto;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-}
+.combo-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 40; margin: 4px 0 0; padding: 4px; list-style: none; max-height: 290px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
 .combo-list li { padding: 7px 9px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
 .combo-list li[aria-selected="true"] { background: var(--soft); }
 .combo-list .code { font-family: var(--mono); font-size: 11.5px; color: var(--muted); flex: none; }
@@ -208,151 +100,123 @@ button.go:hover { background: var(--accent-ink); border-color: var(--accent-ink)
 .combo-list .cat { margin-left: auto; font-size: 11px; color: var(--faint); flex: none; padding-left: 8px; }
 .combo-empty { padding: 10px; color: var(--muted); font-size: 13.5px; }
 
+/* ---------- priority ranker ---------- */
+.rankHead { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+.rankHead h3 { font-size: 14px; font-weight: 600; }
+.hint { font-size: 12.5px; color: var(--muted); }
+.ranker { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.ranker li {
+  display: grid; grid-template-columns: 22px 1fr auto auto; gap: 11px; align-items: center;
+  padding: 9px 11px; background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 8px; cursor: grab;
+}
+.ranker li.dragging { opacity: .45; }
+.ranker li.over { border-color: var(--accent); background: var(--soft); }
+.ranker .pos { font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--accent); text-align: center; }
+.ranker .nm { font-size: 14px; font-weight: 500; min-width: 0; }
+.ranker .nm small { display: block; font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.ranker .wt { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.moves { display: flex; gap: 3px; }
+.moves button { width: 26px; height: 26px; padding: 0; line-height: 1; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 6px; cursor: pointer; }
+.moves button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.moves button:disabled { opacity: .3; cursor: default; }
+
+/* ---------- tabs ---------- */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tabs button {
+  padding: 10px 15px; background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted); font-weight: 500; cursor: pointer; font-size: 14.5px; margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
 /* ---------- results ---------- */
 .resultsHead { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline; justify-content: space-between; }
-h2 { font-family: var(--display); font-size: 25px; font-weight: 600; letter-spacing: -.01em; }
+h2 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
 .sub { color: var(--muted); font-size: 13.5px; }
-
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
 
-.layout { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-
+.layout { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
 .mapPanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
-@media (max-width: 900px) { .mapPanel { position: static; } }
+@media (max-width: 920px) { .mapPanel { position: static; } }
 .mapPanel svg text { font-family: var(--ui); }
 .mapPanel svg { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
 .mapNote { margin-top: 10px; font-size: 11.5px; color: var(--faint); line-height: 1.45; }
 
 .cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--net);
-  border-radius: var(--r);
-  box-shadow: var(--shadow);
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+.card { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--net); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 .cardTop { display: flex; gap: 12px; align-items: flex-start; }
-.rank {
-  font-family: var(--display);
-  font-size: 21px;
-  font-weight: 600;
-  line-height: 1;
-  width: 30px;
-  height: 30px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--fg);
-}
+.rank { font-family: var(--display); font-size: 20px; font-weight: 600; line-height: 1; width: 29px; height: 29px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); }
 .hName { font-size: 16.5px; font-weight: 600; letter-spacing: -.005em; }
 .hMeta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-.hDist { margin-left: auto; text-align: right; flex: none; }
-.hDist b { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; display: block; }
-.hDist span { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+.matchBox { margin-left: auto; text-align: right; flex: none; }
+.matchBox b { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; display: block; line-height: 1.1; }
+.matchBox span { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
 
 .priceRow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.price { font-size: 29px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.price { font-size: 27px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .priceLbl { font-size: 12.5px; color: var(--muted); }
-
-/* range bar — shared 0-based scale across all three hospitals */
-.bar { position: relative; height: 22px; background: var(--surface-2); border-radius: 5px; overflow: visible; }
-.bar .span { position: absolute; top: 5px; height: 12px; background: var(--net); border-radius: 4px; min-width: 4px; }
-.bar .mid { position: absolute; top: 1px; width: 3px; height: 20px; border-radius: 2px; background: var(--fg); box-shadow: 0 0 0 2px var(--surface); }
+.bar { position: relative; height: 20px; background: var(--surface-2); border-radius: 5px; }
+.bar .span { position: absolute; top: 4px; height: 12px; background: var(--net); border-radius: 4px; min-width: 4px; }
+.bar .mid { position: absolute; top: 0; width: 3px; height: 20px; border-radius: 2px; background: var(--fg); box-shadow: 0 0 0 2px var(--surface); }
 .barScale { display: flex; justify-content: space-between; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; margin-top: 3px; }
 
-.tip {
-  position: fixed;
-  z-index: 60;
-  pointer-events: none;
-  background: var(--fg);
-  color: var(--bg);
-  padding: 7px 10px;
-  border-radius: 7px;
-  font-size: 12px;
-  line-height: 1.45;
-  max-width: 250px;
-  box-shadow: var(--shadow);
-}
-.tip b { font-variant-numeric: tabular-nums; }
+/* factor breakdown */
+.factors { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line-soft); padding-top: 11px; }
+.frow { display: grid; grid-template-columns: 112px 1fr 58px; gap: 10px; align-items: center; font-size: 12.5px; }
+.frow .fl { color: var(--muted); min-width: 0; }
+.meter { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.frow .fv { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); font-weight: 500; }
+.frow.na .fv, .frow.na .fl { color: var(--faint); font-weight: 400; font-style: italic; }
 
+.tip { position: fixed; z-index: 60; pointer-events: none; background: var(--fg); color: var(--bg); padding: 7px 10px; border-radius: 7px; font-size: 12px; line-height: 1.45; max-width: 250px; box-shadow: var(--shadow); }
 details { border-top: 1px solid var(--line-soft); padding-top: 10px; }
 summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accent); }
 .plans { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 .plans li { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
 .plans .pn { color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
 .plans .pv { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; flex: none; }
-
-.flag {
-  font-size: 12.5px;
-  line-height: 1.5;
-  padding: 9px 11px;
-  border-radius: 7px;
-  background: var(--surface-2);
-  color: var(--muted);
-}
-.pill {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 20px;
-  background: var(--surface-2);
-  color: var(--muted);
-}
-
-.notice {
-  border: 1px solid var(--warn-line);
-  background: var(--warn-bg);
-  color: var(--warn-ink);
-  border-radius: var(--r);
-  padding: 14px 16px;
-  font-size: 13.5px;
-  line-height: 1.55;
-}
+.flag { font-size: 12.5px; line-height: 1.5; padding: 9px 11px; border-radius: 7px; background: var(--surface-2); color: var(--muted); }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; background: var(--surface-2); color: var(--muted); }
+.pill.good { background: var(--soft); color: var(--accent-ink); }
+.notice { border: 1px solid var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); border-radius: var(--r); padding: 14px 16px; font-size: 13.5px; line-height: 1.55; }
 .notice b { font-weight: 700; }
+.notice a { color: inherit; }
 
-/* ---------- steps ---------- */
-.steps { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 22px; }
+/* ---------- aftercare + estimator ---------- */
 .steps ol { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 14px; }
 .steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
-.steps li::before {
-  content: counter(s);
-  grid-column: 1;
-  font-family: var(--display);
-  font-size: 13px;
-  font-weight: 600;
-  width: 26px; height: 26px;
-  display: grid; place-items: center;
-  border-radius: 50%;
-  background: var(--soft);
-  color: var(--accent-ink);
-}
-.steps h3 { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
+.steps li::before { content: counter(s); font-family: var(--display); font-size: 13px; font-weight: 600; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--soft); color: var(--accent-ink); }
+.steps h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
 .steps p { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
 .steps code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--fg); }
 
+.estGrid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .estGrid { grid-template-columns: 1fr; } }
+.estFields { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+@media (max-width: 420px) { .estFields { grid-template-columns: 1fr; } }
+.ledger { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ledger li { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+.ledger li:last-child { border-bottom: none; }
+.ledger .lv { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
+.ledger li.total { border-top: 2px solid var(--line); margin-top: 6px; padding-top: 12px; font-weight: 700; font-size: 17px; }
+.ledger li.muted, .ledger li.muted .lv { color: var(--muted); font-weight: 400; font-size: 13px; }
+
 footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 12.5px; color: var(--faint); line-height: 1.6; display: flex; flex-direction: column; gap: 8px; }
 footer b { color: var(--muted); font-weight: 600; }
+footer a { color: var(--muted); }
 .skeleton { color: var(--muted); padding: 40px 0; text-align: center; }
 </style>
 
 <div class="wrap">
 
   <header>
-    <p class="eyebrow">Hospital price transparency · Lehigh Valley</p>
+    <p class="eyebrow">Hospital price &amp; quality &middot; Lehigh Valley</p>
     <h1>What will this actually cost?</h1>
-    <p class="lede">Lehigh Valley Health Network and St.&nbsp;Luke's publish every rate they have negotiated with every insurer. The same scan can differ <strong>14×</strong> between two cards at the same hospital. Pick your insurer and procedure to compare.</p>
+    <p class="lede">Lehigh Valley Health Network and St.&nbsp;Luke's publish every rate they have negotiated with every insurer. The same scan can differ <strong>14&times;</strong> between two cards at the same hospital. Rank what matters to you and compare.</p>
   </header>
 
   <form class="panel" id="searchForm" novalidate>
@@ -361,39 +225,87 @@ footer b { color: var(--muted); font-weight: 600; }
         <label for="zip">ZIP code</label>
         <input id="zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="18015">
       </div>
-
       <div class="field" id="f-payer">
         <label for="payer">Insurance provider</label>
-        <select id="payer" name="payer"><option value="">Loading…</option></select>
+        <select id="payer" name="payer"><option value="">Loading&hellip;</option></select>
       </div>
-
+      <div class="field" id="f-plan">
+        <label for="plan">Plan</label>
+        <select id="plan" name="plan"><option value="">Any plan</option></select>
+      </div>
       <div class="field" id="f-proc">
         <label for="proc">Medical procedure</label>
         <input id="proc" name="proc" role="combobox" aria-expanded="false" aria-autocomplete="list"
                aria-controls="procList" autocomplete="off" placeholder="Type to search 76 procedures">
         <ul class="combo-list" id="procList" role="listbox" aria-label="Procedures" hidden></ul>
       </div>
-
-      <div class="field">
-        <button type="submit" class="go">Search</button>
-      </div>
+      <div class="field"><button type="submit" class="go">Search</button></div>
     </div>
     <p class="formError" id="formError" role="alert" hidden></p>
   </form>
 
-  <section id="results" aria-live="polite">
-    <p class="skeleton">Loading price data…</p>
+  <section class="panel" aria-labelledby="rankTitle">
+    <div class="rankHead">
+      <h3 id="rankTitle">What matters most to you?</h3>
+      <p class="hint">Drag to reorder, or use the arrows. Top of the list counts most.</p>
+    </div>
+    <ol class="ranker" id="ranker"></ol>
   </section>
 
-  <section class="steps" id="steps" hidden>
-    <h2>Before you go</h2>
-    <p class="sub" style="margin-top:6px">A published rate is a starting point, not a bill. These six steps are what actually change what you pay.</p>
-    <ol id="stepList"></ol>
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" id="tab-results" aria-controls="panel-results" aria-selected="true">Hospitals</button>
+    <button role="tab" id="tab-after" aria-controls="panel-after" aria-selected="false">Aftercare</button>
+    <button role="tab" id="tab-bill" aria-controls="panel-bill" aria-selected="false">Estimate my bill</button>
+  </div>
+
+  <section id="panel-results" role="tabpanel" aria-labelledby="tab-results" aria-live="polite">
+    <p class="skeleton">Loading price data&hellip;</p>
+  </section>
+
+  <section id="panel-after" role="tabpanel" aria-labelledby="tab-after" class="panel steps" hidden>
+    <h2>After the procedure</h2>
+    <p class="sub" style="margin-top:6px">The clinical part ends at discharge. The billing part runs for about three months after it.</p>
+    <ol id="afterList"></ol>
+  </section>
+
+  <section id="panel-bill" role="tabpanel" aria-labelledby="tab-bill" class="panel" hidden>
+    <h2>Estimate my bill</h2>
+    <p class="sub" style="margin-top:6px">The negotiated rate is what the hospital collects in total. What you owe depends on your own plan, so put your numbers in.</p>
+    <div class="estGrid" style="margin-top:18px">
+      <div>
+        <div class="estFields">
+          <div class="field">
+            <label for="ded">Deductible remaining</label>
+            <input id="ded" type="number" min="0" step="50" value="1500" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="coins">Coinsurance %</label>
+            <input id="coins" type="number" min="0" max="100" step="5" value="20" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="copay">Flat copay (if any)</label>
+            <input id="copay" type="number" min="0" step="5" value="0" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="oop">Out-of-pocket max left</label>
+            <input id="oop" type="number" min="0" step="100" value="6000" inputmode="numeric">
+          </div>
+        </div>
+        <p class="hint" style="margin-top:12px">These four numbers are on your insurer's member portal, usually under "Plan balances". A flat copay above zero overrides the deductible and coinsurance maths, which is how most office visits work.</p>
+      </div>
+      <div>
+        <h3 style="font-size:14px;font-weight:600" id="estFor">&nbsp;</h3>
+        <ul class="ledger" id="ledger"></ul>
+        <p class="notice" style="margin-top:14px">An estimate from the numbers you entered, not a quote. It assumes the service is covered, in network, needs no prior authorisation, and that no separate physician or anaesthesia bill follows. Any of those can change the total.</p>
+      </div>
+    </div>
   </section>
 
   <footer>
-    <p><b>Source.</b> CMS 45&nbsp;CFR&nbsp;180.50 machine-readable standard charge files, version 3.0.0 — Lehigh Valley Hospital (published 2026-07-01) and St.&nbsp;Luke's Bethlehem and Allentown campuses (2026-02-26). 6,856 negotiated rates across 76 shoppable services.</p>
-    <p><b>Not a quote.</b> Figures are negotiated allowed amounts between hospital and insurer. They are not your out-of-pocket cost and this page is not affiliated with either health network.</p>
+    <p><b>Prices.</b> CMS 45&nbsp;CFR&nbsp;180.50 machine-readable standard charge files, v3.0.0 — Lehigh Valley Hospital (2026-07-01), St.&nbsp;Luke's Bethlehem and Allentown (2026-02-26). 6,856 negotiated rates across 76 services.</p>
+    <p><b>Quality and safety.</b> CMS Care Compare, Hospital General Information. Star ratings and the safety, mortality and readmission figures are CMS measure counts; the 0&ndash;100 subscores are this page's own summary of them, not a CMS score. St.&nbsp;Luke's Allentown has no separate CMS listing and is shown unrated rather than given another campus's result.</p>
+    <p><b>Accreditation.</b> Not shown. Joint Commission status is not published as open data, so verify a hospital at <a href="https://www.qualitycheck.org" target="_blank" rel="noopener">qualitycheck.org</a> rather than trusting a badge here.</p>
+    <p><b>Not a quote.</b> Negotiated amounts are between hospital and insurer, not your out-of-pocket cost. This page is not affiliated with either health network.</p>
     <p id="footNote"></p>
   </footer>
 </div>
@@ -403,46 +315,154 @@ footer b { color: var(--muted); font-weight: 600; }
   "use strict";
 
   var D = null, SVC = [], BYCODE = {}, HOSP = {}, picked = null, tipEl = null;
+  var lastRows = null, lastCtx = null;
+
+  // build_site.py sets window.LVP_API for the AWS build. Without it the page
+  // reads the bundled prices.json, which is how it runs as a published artifact
+  // (that sandbox blocks cross-origin fetch).
+  var API = (typeof window.LVP_API === "string" && window.LVP_API)
+    ? window.LVP_API.replace(/\/$/, "") : null;
 
   var $ = function (id) { return document.getElementById(id); };
-  var money = function (n) {
-    return "$" + Math.round(n).toLocaleString("en-US");
-  };
+  var money = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var esc = function (s) {
     return String(s).replace(/[&<>"]/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
     });
   };
 
-  /* ---------------- data ---------------- */
+  function getJSON(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error(r.status + " from " + url);
+      return r.json();
+    });
+  }
+  function loadMeta() { return getJSON(API ? API + "/meta" : "prices.json"); }
+  function loadRates(code, payer) {
+    if (!API) return Promise.resolve((D.prices || {})[code + "|" + payer] || {});
+    return getJSON(API + "/rates?service=" + encodeURIComponent(code) +
+                   "&payer=" + encodeURIComponent(payer));
+  }
 
-  fetch("prices.json")
-    .then(function (r) { return r.json(); })
+  /* ---------------- ranking factors ---------------- */
+
+  var FACTORS = [
+    { k: "price",  n: "Price",            d: "Lowest negotiated rate" },
+    { k: "dist",   n: "Distance",         d: "Closest to your ZIP" },
+    { k: "safety", n: "Patient safety",   d: "CMS safety measures" },
+    { k: "stars",  n: "Quality rating",   d: "CMS overall star rating" },
+    { k: "readm",  n: "Readmissions",     d: "CMS readmission measures" }
+  ];
+  var order = FACTORS.map(function (f) { return f.k; });
+
+  function weights() {
+    // Rank 1 of 5 scores 5, rank 5 scores 1, normalised to sum to 1.
+    var raw = {}, total = 0;
+    order.forEach(function (k, i) {
+      var w = order.length - i;
+      raw[k] = w; total += w;
+    });
+    Object.keys(raw).forEach(function (k) { raw[k] = raw[k] / total; });
+    return raw;
+  }
+
+  function drawRanker() {
+    var w = weights();
+    var html = order.map(function (k, i) {
+      var f = FACTORS.filter(function (x) { return x.k === k; })[0];
+      return '<li draggable="true" data-k="' + k + '" tabindex="0">' +
+        '<span class="pos">' + (i + 1) + "</span>" +
+        '<span class="nm">' + esc(f.n) + "<small>" + esc(f.d) + "</small></span>" +
+        '<span class="wt">' + Math.round(w[k] * 100) + "% weight</span>" +
+        '<span class="moves">' +
+          '<button type="button" data-mv="-1" aria-label="Move ' + esc(f.n) + ' up"' + (i === 0 ? " disabled" : "") + ">&uarr;</button>" +
+          '<button type="button" data-mv="1" aria-label="Move ' + esc(f.n) + ' down"' + (i === order.length - 1 ? " disabled" : "") + ">&darr;</button>" +
+        "</span></li>";
+    }).join("");
+    $("ranker").innerHTML = html;
+  }
+
+  function move(k, delta) {
+    var i = order.indexOf(k), j = i + delta;
+    if (j < 0 || j >= order.length) return;
+    order.splice(j, 0, order.splice(i, 1)[0]);
+    drawRanker();
+    if (lastCtx) rerank();
+  }
+
+  (function wireRanker() {
+    var box = $("ranker"), dragKey = null;
+    box.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-mv]");
+      if (b) move(b.closest("li").dataset.k, +b.dataset.mv);
+    });
+    box.addEventListener("keydown", function (e) {
+      var li = e.target.closest("li[data-k]");
+      if (!li) return;
+      if (e.key === "ArrowUp" && (e.metaKey || e.ctrlKey || e.altKey)) { e.preventDefault(); move(li.dataset.k, -1); }
+      if (e.key === "ArrowDown" && (e.metaKey || e.ctrlKey || e.altKey)) { e.preventDefault(); move(li.dataset.k, 1); }
+    });
+    box.addEventListener("dragstart", function (e) {
+      var li = e.target.closest("li[data-k]");
+      if (!li) return;
+      dragKey = li.dataset.k;
+      li.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", dragKey); } catch (_) { /* IE */ }
+    });
+    box.addEventListener("dragend", function () {
+      dragKey = null;
+      Array.prototype.forEach.call(box.children, function (li) {
+        li.classList.remove("dragging", "over");
+      });
+    });
+    box.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      var li = e.target.closest("li[data-k]");
+      Array.prototype.forEach.call(box.children, function (x) { x.classList.remove("over"); });
+      if (li && li.dataset.k !== dragKey) li.classList.add("over");
+    });
+    box.addEventListener("drop", function (e) {
+      e.preventDefault();
+      var li = e.target.closest("li[data-k]");
+      if (!li || !dragKey || li.dataset.k === dragKey) return;
+      var from = order.indexOf(dragKey), to = order.indexOf(li.dataset.k);
+      order.splice(to, 0, order.splice(from, 1)[0]);
+      drawRanker();
+      if (lastCtx) rerank();
+    });
+  })();
+
+  /* ---------------- boot ---------------- */
+
+  loadMeta()
     .then(function (d) {
       D = d;
       SVC = d.services;
       d.services.forEach(function (s) { BYCODE[s.code] = s; });
       d.hospitals.forEach(function (h) { HOSP[h.id] = h; });
       buildPayers();
-      // Open in a realistic working state rather than an empty shell.
+      drawRanker();
+      buildAftercare();
       $("zip").value = "18015";
       $("payer").value = "Aetna";
+      buildPlans("Aetna");
       pick(BYCODE["72148"]);
       run(true);
     })
     .catch(function () {
-      $("results").innerHTML =
-        '<div class="notice">Could not load the price data file. Reload the page to try again.</div>';
+      $("panel-results").innerHTML = '<div class="notice"><b>Could not load price data.</b> ' +
+        (API ? "The rates API did not respond." : "The data file did not load.") +
+        " Reload the page to try again.</div>";
     });
 
   function buildPayers() {
-    var sel = $("payer");
     var groups = [
       ["Contracted with both networks", function (p) { return p.nets.length === 2; }],
       ["Lehigh Valley Health Network only", function (p) { return p.nets.length === 1 && p.nets[0] === "LVHN"; }],
       ["St. Luke's only", function (p) { return p.nets.length === 1 && p.nets[0] === "SLUHN"; }]
     ];
-    var html = '<option value="">Select your insurer…</option>';
+    var html = '<option value="">Select your insurer&hellip;</option>';
     groups.forEach(function (g) {
       var list = D.payers.filter(g[1]);
       if (!list.length) return;
@@ -450,8 +470,33 @@ footer b { color: var(--muted); font-weight: 600; }
       list.forEach(function (p) { html += '<option value="' + esc(p.n) + '">' + esc(p.n) + "</option>"; });
       html += "</optgroup>";
     });
+    $("payer").innerHTML = html;
+  }
+
+  // Plans are grouped by coverage type, which is how Medicare, Medicaid and
+  // CHIP appear — they are plan lines under a commercial payer, not payers.
+  function buildPlans(payer) {
+    var sel = $("plan");
+    var list = (D.payerPlans || {})[payer] || [];
+    if (!list.length) {
+      sel.innerHTML = '<option value="">Any plan</option>';
+      return;
+    }
+    var byCov = {};
+    list.forEach(function (p) { (byCov[p.cov] = byCov[p.cov] || []).push(p.p); });
+    var html = '<option value="">Any plan</option>';
+    ["Commercial", "Medicare", "Medicaid", "CHIP", "Marketplace"].forEach(function (cov) {
+      if (!byCov[cov]) return;
+      html += '<optgroup label="' + esc(cov) + '">';
+      byCov[cov].sort().forEach(function (p) {
+        html += '<option value="' + esc(p) + '">' + esc(p) + "</option>";
+      });
+      html += "</optgroup>";
+    });
     sel.innerHTML = html;
   }
+
+  $("payer").addEventListener("change", function () { buildPlans(this.value); });
 
   /* ---------------- procedure combobox ---------------- */
 
@@ -460,16 +505,8 @@ footer b { color: var(--muted); font-weight: 600; }
   function labelFor(s) {
     return s.name + "  (" + (s.type === "MS-DRG" ? "DRG " : "") + s.code + ")";
   }
-  function pick(s) {
-    picked = s || null;
-    if (s) input.value = labelFor(s);
-    close();
-  }
-  function close() {
-    list.hidden = true;
-    input.setAttribute("aria-expanded", "false");
-    active = -1;
-  }
+  function pick(s) { picked = s || null; if (s) input.value = labelFor(s); close(); }
+  function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; }
   function matches(q) {
     q = q.trim().toLowerCase();
     if (!q) return SVC.slice(0, 60);
@@ -478,10 +515,9 @@ footer b { color: var(--muted); font-weight: 600; }
     }).slice(0, 60);
   }
   function open() {
-    // A picked service fills the box with its own label; don't filter against that.
     shown = matches(picked && input.value === labelFor(picked) ? "" : input.value);
     if (!shown.length) {
-      list.innerHTML = '<li class="combo-empty" role="presentation">No procedure matches that. Try “MRI”, “colonoscopy” or a CPT code.</li>';
+      list.innerHTML = '<li class="combo-empty" role="presentation">No procedure matches that. Try &ldquo;MRI&rdquo;, &ldquo;colonoscopy&rdquo; or a CPT code.</li>';
     } else {
       list.innerHTML = shown.map(function (s, i) {
         return '<li role="option" id="opt' + i + '" aria-selected="false" data-i="' + i + '">' +
@@ -503,15 +539,13 @@ footer b { color: var(--muted); font-weight: 600; }
     input.setAttribute("aria-activedescendant", "opt" + active);
     items[active].scrollIntoView({ block: "nearest" });
   }
-
   input.addEventListener("input", function () { picked = null; open(); });
   input.addEventListener("focus", open);
   input.addEventListener("keydown", function (e) {
     if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) open(); highlight(active + 1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); if (list.hidden) open(); highlight(active - 1); }
-    else if (e.key === "Enter") {
-      if (!list.hidden && active > -1) { e.preventDefault(); pick(shown[active]); }
-    } else if (e.key === "Escape") { close(); }
+    else if (e.key === "Enter") { if (!list.hidden && active > -1) { e.preventDefault(); pick(shown[active]); } }
+    else if (e.key === "Escape") { close(); }
   });
   list.addEventListener("mousedown", function (e) {
     var li = e.target.closest("li[data-i]");
@@ -519,6 +553,26 @@ footer b { color: var(--muted); font-weight: 600; }
   });
   document.addEventListener("click", function (e) {
     if (!list.hidden && !list.contains(e.target) && e.target !== input) close();
+  });
+
+  /* ---------------- tabs ---------------- */
+
+  (function wireTabs() {
+    var tabs = [["tab-results", "panel-results"], ["tab-after", "panel-after"], ["tab-bill", "panel-bill"]];
+    tabs.forEach(function (t) {
+      $(t[0]).addEventListener("click", function () {
+        tabs.forEach(function (o) {
+          var on = o[0] === t[0];
+          $(o[0]).setAttribute("aria-selected", on ? "true" : "false");
+          $(o[1]).hidden = !on;
+        });
+        if (t[0] === "tab-bill") estimate();
+      });
+    });
+  })();
+
+  ["ded", "coins", "copay", "oop"].forEach(function (id) {
+    $(id).addEventListener("input", estimate);
   });
 
   /* ---------------- geo ---------------- */
@@ -555,47 +609,119 @@ footer b { color: var(--muted); font-weight: 600; }
       return;
     }
     err.hidden = true;
-    render(zip, payer, picked, isExample);
+
+    var svc = picked, plan = $("plan").value;
+    if (API) { $("panel-results").innerHTML = '<p class="skeleton">Looking up rates&hellip;</p>'; }
+    loadRates(svc.code, payer)
+      .then(function (priced) {
+        lastCtx = { zip: zip, payer: payer, svc: svc, plan: plan, isExample: isExample, priced: priced || {} };
+        rerank();
+      })
+      .catch(function () {
+        $("panel-results").innerHTML = '<div class="notice"><b>Lookup failed.</b> ' +
+          "The rates service did not respond. Try searching again.</div>";
+      });
+  }
+
+  /* ---------------- scoring ---------------- */
+
+  function entryFor(e, plan) {
+    // Narrow an entry to one plan when the user picked one.
+    if (!plan) return e;
+    var hit = (e.plans || []).filter(function (p) { return p.p === plan; });
+    if (!hit.length) return null;
+    var lo = Math.min.apply(null, hit.map(function (p) { return p.lo; }));
+    var hi = Math.max.apply(null, hit.map(function (p) { return p.hi; }));
+    return {
+      lo: lo, hi: hi, mid: (lo + hi) / 2, n: hit.length, set: e.set, meth: e.meth,
+      plans: hit, cash: e.cash, gross: e.gross, narrowed: true
+    };
+  }
+
+  function score(rows) {
+    var w = weights();
+    var prices = rows.map(function (r) { return r.e.mid; });
+    var dists = rows.map(function (r) { return r.dist; }).filter(function (d) { return d !== null; });
+    var pLo = Math.min.apply(null, prices), pHi = Math.max.apply(null, prices);
+    var dLo = dists.length ? Math.min.apply(null, dists) : 0;
+    var dHi = dists.length ? Math.max.apply(null, dists) : 0;
+
+    function invert(v, lo, hi) {           // lower is better -> 0..100
+      if (v === null || v === undefined) return null;
+      if (hi - lo < 1e-9) return 100;
+      return 100 * (1 - (v - lo) / (hi - lo));
+    }
+
+    rows.forEach(function (r) {
+      var q = (D.quality || {})[r.h.id] || {};
+      var f = {
+        price:  invert(r.e.mid, pLo, pHi),
+        dist:   r.dist === null ? null : invert(r.dist, dLo, dHi),
+        safety: q.safety ? q.safety.score : null,
+        stars:  q.stars ? (q.stars / 5) * 100 : null,
+        readm:  q.readmission ? q.readmission.score : null
+      };
+      // Renormalise over the factors this hospital actually has data for,
+      // rather than scoring a gap as zero.
+      var sum = 0, wsum = 0;
+      Object.keys(f).forEach(function (k) {
+        if (f[k] === null) return;
+        sum += w[k] * f[k];
+        wsum += w[k];
+      });
+      r.f = f;
+      r.match = wsum > 0 ? Math.round(sum / wsum) : null;
+      r.missing = Object.keys(f).filter(function (k) { return f[k] === null; });
+      r.q = q;
+    });
+    rows.sort(function (a, b) { return (b.match || -1) - (a.match || -1); });
+    return rows;
+  }
+
+  function rerank() {
+    var c = lastCtx;
+    if (!c) return;
+    var here = D.zips[c.zip] || null;
+    var rows = [];
+    Object.keys(c.priced).forEach(function (hid) {
+      var h = HOSP[hid];
+      var e = entryFor(c.priced[hid], c.plan);
+      if (!h || !e) return;
+      rows.push({ h: h, e: e, dist: here ? miles(here[0], here[1], h.lat, h.lon) : null });
+    });
+    lastRows = score(rows).slice(0, 3);
+    render(here);
+    estimate();
   }
 
   /* ---------------- render ---------------- */
 
-  function render(zip, payer, svc, isExample) {
-    var here = D.zips[zip] || null;
-    var priced = D.prices[svc.code + "|" + payer] || {};
+  function render(here) {
+    var c = lastCtx, rows = lastRows, svc = c.svc, payer = c.payer;
     var payerRec = D.payers.filter(function (p) { return p.n === payer; })[0] || { nets: [] };
-
-    var rows = Object.keys(priced).map(function (hid) {
-      var h = HOSP[hid], e = priced[hid];
-      return {
-        h: h, e: e,
-        dist: here ? miles(here[0], here[1], h.lat, h.lon) : null
-      };
-    }).sort(function (a, b) { return a.e.mid - b.e.mid; }).slice(0, 3);
-
     var out = [];
 
     out.push('<div class="resultsHead"><div>' +
       "<h2>" + esc(svc.name) + "</h2>" +
       '<p class="sub">' + (svc.type === "MS-DRG" ? "MS-DRG " : "CPT/HCPCS ") + esc(svc.code) +
-      " · " + esc(svc.cat) + " · " + esc(payer) +
-      (here ? " · near " + esc(zip) : " · ZIP " + esc(zip) + " is outside the covered area, so distances are hidden") +
+      " &middot; " + esc(svc.cat) + " &middot; " + esc(payer) +
+      (c.plan ? " &middot; " + esc(c.plan) : "") +
+      (here ? " &middot; near " + esc(c.zip) : " &middot; ZIP " + esc(c.zip) + " is outside the covered area, so distance is not scored") +
       "</p></div>" +
       '<div class="legend">' +
       '<span><i class="swatch" style="background:var(--lvhn)"></i>Lehigh Valley Health Network</span>' +
       '<span><i class="swatch" style="background:var(--sluhn)"></i>St. Luke\'s</span>' +
       "</div></div>");
 
-    if (isExample) {
-      out.push('<div class="flag" style="margin-top:14px">Showing an example search — an MRI of the lumbar spine on Aetna, from Bethlehem. Change any field and search again.</div>');
+    if (c.isExample) {
+      out.push('<div class="flag" style="margin-top:14px">Example search &mdash; an MRI of the lumbar spine on Aetna, from Bethlehem. Change any field and search again.</div>');
     }
 
     if (!rows.length) {
-      out.push('<div class="notice" style="margin-top:16px"><b>No published rate.</b> Neither network discloses a dollar rate for ' +
-        esc(svc.name) + " under " + esc(payer) +
-        ". Hospitals may price it as a percentage of billed charges instead, which cannot be resolved to a dollar figure. Try another insurer or procedure.</div>");
-      $("results").innerHTML = out.join("");
-      $("steps").hidden = true;
+      out.push('<div class="notice" style="margin-top:16px"><b>No published rate.</b> Nothing is disclosed for ' +
+        esc(svc.name) + " under " + esc(payer) + (c.plan ? " on the " + esc(c.plan) + " plan" : "") +
+        ". Hospitals may price it as a percentage of billed charges instead, which cannot be resolved to a dollar figure. Try another plan, insurer or procedure.</div>");
+      $("panel-results").innerHTML = out.join("");
       return;
     }
 
@@ -604,7 +730,7 @@ footer b { color: var(--muted); font-weight: 600; }
 
     out.push('<div class="layout" style="margin-top:16px">');
     out.push('<div class="mapPanel">' + mapSVG(rows, here) + '<p class="mapNote">' +
-      (here ? "Your ZIP (" + esc(zip) + ") is marked with a ring. " : "") +
+      (here ? "Your ZIP (" + esc(c.zip) + ") is marked with a ring. " : "") +
       "Lehigh and Northampton counties are shaded. LVHN's ten Lehigh Valley sites share one published price, so the network appears once, pinned at Cedar Crest.</p></div>");
 
     out.push('<ol class="cards">');
@@ -612,69 +738,97 @@ footer b { color: var(--muted); font-weight: 600; }
       var h = r.h, e = r.e;
       var hue = h.net === "LVHN" ? "var(--lvhn)" : "var(--sluhn)";
       var lo = (e.lo / scale) * 100, wide = ((e.hi - e.lo) / scale) * 100, mid = (e.mid / scale) * 100;
-      var spread = e.hi > e.lo;
 
       out.push('<li class="card" style="--net:' + hue + '">');
-      out.push('<div class="cardTop"><div class="rank">' + (i + 1) + "</div><div style=\"min-width:0\">" +
-        '<div class="hName">' + esc(h.name) + (h.campus && h.campus !== "All licensed locations" ? " — " + esc(h.campus) : "") + "</div>" +
-        '<div class="hMeta">' + esc(h.addr) + "</div></div>" +
-        (r.dist !== null ? '<div class="hDist"><b>' + r.dist.toFixed(1) + "</b><span>miles</span></div>" : "") +
+      out.push('<div class="cardTop"><div class="rank">' + (i + 1) + '</div><div style="min-width:0">' +
+        '<div class="hName">' + esc(h.name) + (h.campus && h.campus !== "All licensed locations" ? " &mdash; " + esc(h.campus) : "") + "</div>" +
+        '<div class="hMeta">' + esc(h.addr) +
+        (r.dist !== null ? " &middot; " + r.dist.toFixed(1) + " mi" : "") + "</div></div>" +
+        (r.match !== null ? '<div class="matchBox"><b>' + r.match + "</b><span>match</span></div>" : "") +
         "</div>");
 
       out.push('<div><div class="priceRow"><div class="price">' + money(e.mid) + "</div>" +
-        '<div class="priceLbl">typical negotiated rate · <span class="pill">' + esc(e.set) + "</span></div></div>");
-
+        '<div class="priceLbl">typical negotiated rate &middot; <span class="pill">' + esc(e.set) + "</span>" +
+        (r.q && r.q.stars ? ' <span class="pill good">' + r.q.stars + "&#9733; CMS</span>" : "") + "</div></div>");
       out.push('<div class="bar" data-h="' + esc(h.id) + '" tabindex="0" role="img" aria-label="Range ' +
         money(e.lo) + " to " + money(e.hi) + ", typical " + money(e.mid) + ' across ' + e.n + ' published rates">' +
         '<div class="span" style="left:' + lo.toFixed(2) + "%;width:" + Math.max(wide, 0.6).toFixed(2) + '%"></div>' +
         '<div class="mid" style="left:calc(' + mid.toFixed(2) + '% - 1.5px)"></div></div>');
       out.push('<div class="barScale"><span>$0</span><span>' +
-        (spread ? money(e.lo) + " – " + money(e.hi) + " across " + e.n + " rates" : e.n + " published rate" + (e.n === 1 ? "" : "s")) +
+        (e.hi > e.lo ? money(e.lo) + " &ndash; " + money(e.hi) + " across " + e.n + " rates"
+                     : e.n + " published rate" + (e.n === 1 ? "" : "s")) +
         "</span><span>" + money(scale) + "</span></div></div>");
 
-      if (e.cash) {
-        out.push('<div class="flag">Uninsured cash price published by this hospital: <b>' + money(e.cash) + "</b></div>");
+      // factor breakdown
+      out.push('<div class="factors">');
+      order.forEach(function (k) {
+        var f = FACTORS.filter(function (x) { return x.k === k; })[0];
+        var v = r.f[k];
+        if (v === null) {
+          out.push('<div class="frow na"><span class="fl">' + esc(f.n) +
+            '</span><span class="meter"></span><span class="fv">no data</span></div>');
+          return;
+        }
+        var label = k === "price" ? money(r.e.mid)
+          : k === "dist" ? r.dist.toFixed(1) + " mi"
+          : k === "stars" ? r.q.stars + " / 5"
+          : Math.round(v) + " / 100";
+        out.push('<div class="frow"><span class="fl">' + esc(f.n) + "</span>" +
+          '<span class="meter"><i style="width:' + Math.max(2, v).toFixed(0) + '%"></i></span>' +
+          '<span class="fv">' + label + "</span></div>");
+      });
+      out.push("</div>");
+
+      if (r.missing.length && r.q && r.q.note) {
+        out.push('<div class="flag">' + esc(r.q.note) + "</div>");
+      }
+      if (e.cash || e.gross) {
+        out.push('<div class="flag">Without insurance: ' +
+          (e.cash ? "discounted cash price <b>" + money(e.cash) + "</b>" : "") +
+          (e.cash && e.gross ? ", " : "") +
+          (e.gross ? "list price <b>" + money(e.gross) + "</b>" : "") +
+          ". Always ask for the cash price — it is often below the insured rate.</div>");
       }
       if (h.id === "LVH-ALL") {
-        out.push('<div class="flag">One price covers all ten LVHN sites in the valley — Cedar Crest, Muhlenberg, Hecktown Oaks, 17th Street and the rest. LVHN does not publish which rates are facility versus physician fees.</div>');
+        out.push('<div class="flag">One price covers all ten LVHN sites in the valley. LVHN publishes no list or cash price for coded services, and does not label facility versus physician fees.</div>');
       }
 
       out.push("<details><summary>Rates by plan (" + e.plans.length + ")</summary><ul class=\"plans\">");
       e.plans.forEach(function (p) {
-        out.push('<li><span class="pn">' + esc(p.p) + '</span><span class="pv">' +
-          (p.hi > p.lo ? money(p.lo) + " – " + money(p.hi) : money(p.lo)) + "</span></li>");
+        out.push('<li><span class="pn">' + esc(p.p) +
+          (p.cov ? ' <span class="pill">' + esc(p.cov) + "</span>" : "") +
+          '</span><span class="pv">' +
+          (p.hi > p.lo ? money(p.lo) + " &ndash; " + money(p.hi) : money(p.lo)) + "</span></li>");
       });
-      out.push("</ul></details>");
-      out.push("</li>");
+      out.push("</ul></details></li>");
     });
     out.push("</ol></div>");
 
-    // What the number is, and is not.
     out.push('<div class="notice" style="margin-top:18px"><b>This is not your copay.</b> ' +
-      "The figure above is the allowed amount — the total the hospital collects from you and " + esc(payer) +
-      " combined. Your share depends on your deductible, coinsurance and out-of-pocket maximum, none of which appear in any published file. " +
-      "The bar shows the full published range because the rate also varies by plan within " + esc(payer) + ".</div>");
+      "The figure shown is the allowed amount — the total the hospital collects from you and " + esc(payer) +
+      " combined. Open <b>Estimate my bill</b> to work out your share. " +
+      "<b>Match</b> blends the five factors in the order you ranked them; where a hospital has no data for a factor, " +
+      "the remaining weights are rescaled rather than counted as zero.</div>");
 
     if (payerRec.nets.length === 1) {
       var only = payerRec.nets[0] === "LVHN" ? "Lehigh Valley Health Network" : "St. Luke's";
       out.push('<div class="notice" style="margin-top:12px"><b>One network only.</b> ' + esc(payer) +
-        " appears only in " + esc(only) + "'s file, so there is nothing to compare it against. " +
-        "Switch to an insurer listed under “Contracted with both networks” for a head-to-head.</div>");
+        " appears only in " + esc(only) + "'s file, so there is nothing to compare against.</div>");
     }
 
-    $("results").innerHTML = out.join("");
-    wireTips(rows, scale);
-    steps(svc, payer, rows);
+    $("panel-results").innerHTML = out.join("");
+    wireTips(rows);
     $("footNote").textContent =
-      "Showing " + rows.length + " of 3 hospitals in the subset. Ranked by the median published rate; the lowest single rate may belong to a plan you do not hold.";
+      "Showing " + rows.length + " of 3 hospitals. Length of stay was requested as a ranking factor but " +
+      "CMS Care Compare does not publish it; readmission measures are used instead.";
   }
 
   /* ---------------- hover layer ---------------- */
 
-  function wireTips(rows, scale) {
+  function wireTips(rows) {
     var byId = {};
     rows.forEach(function (r) { byId[r.h.id] = r; });
-
+    function hide() { if (tipEl) { tipEl.remove(); tipEl = null; } }
     function show(el, ev) {
       var r = byId[el.dataset.h];
       if (!r) return;
@@ -682,8 +836,8 @@ footer b { color: var(--muted); font-weight: 600; }
       tipEl = document.createElement("div");
       tipEl.className = "tip";
       var cheapest = r.e.plans[0];
-      tipEl.innerHTML = "<b>" + money(r.e.lo) + " – " + money(r.e.hi) + "</b> across " + r.e.n +
-        " published rate" + (r.e.n === 1 ? "" : "s") + "<br>Typical <b>" + money(r.e.mid) + "</b>" +
+      tipEl.innerHTML = "<b>" + money(r.e.lo) + " &ndash; " + money(r.e.hi) + "</b> across " + r.e.n +
+        " rate" + (r.e.n === 1 ? "" : "s") + "<br>Typical <b>" + money(r.e.mid) + "</b>" +
         "<br>Lowest plan: " + esc(cheapest.p) + " at <b>" + money(cheapest.lo) + "</b>" +
         "<br>Priced as " + esc(r.e.meth);
       document.body.appendChild(tipEl);
@@ -693,8 +847,6 @@ footer b { color: var(--muted); font-weight: 600; }
       var top = box.top - tipEl.offsetHeight - 9;
       tipEl.style.top = (top < 8 ? box.bottom + 9 : top) + "px";
     }
-    function hide() { if (tipEl) { tipEl.remove(); tipEl = null; } }
-
     Array.prototype.forEach.call(document.querySelectorAll(".bar[data-h]"), function (el) {
       el.addEventListener("mouseenter", function (e) { show(el, e); });
       el.addEventListener("mousemove", function (e) { if (tipEl) show(el, e); });
@@ -719,7 +871,7 @@ footer b { color: var(--muted); font-weight: 600; }
       dx = Math.max(dx, Math.abs(p[0] - cx));
       dy = Math.max(dy, Math.abs(p[1] - cy));
     });
-    var AR = 0.78;                       // map height / width
+    var AR = 0.78;
     var halfW = Math.max(dx * 1.6, 0.30);
     var halfH = Math.max(dy * 1.6, 0.22);
     if (halfH / halfW > AR) { halfW = halfH / AR; } else { halfH = halfW * AR; }
@@ -751,8 +903,7 @@ footer b { color: var(--muted); font-weight: 600; }
 
     if (here) {
       var hp = P(here[0], here[1]);
-      s.push('<circle cx="' + hp[0].toFixed(1) + '" cy="' + hp[1].toFixed(1) +
-        '" r="11" fill="none" stroke="var(--fg)" stroke-width="2.5"/>');
+      s.push('<circle cx="' + hp[0].toFixed(1) + '" cy="' + hp[1].toFixed(1) + '" r="11" fill="none" stroke="var(--fg)" stroke-width="2.5"/>');
       s.push('<circle cx="' + hp[0].toFixed(1) + '" cy="' + hp[1].toFixed(1) + '" r="3.5" fill="var(--fg)"/>');
       rows.forEach(function (r) {
         var p = P(r.h.lat, r.h.lon);
@@ -774,29 +925,78 @@ footer b { color: var(--muted); font-weight: 600; }
     return s.join("");
   }
 
-  /* ---------------- next steps ---------------- */
+  /* ---------------- estimate my bill ---------------- */
 
-  function steps(svc, payer, rows) {
-    var codeLbl = (svc.type === "MS-DRG" ? "MS-DRG " : "CPT ") + svc.code;
-    var best = rows[0];
+  function estimate() {
+    if (!lastRows || !lastRows.length) {
+      $("estFor").textContent = "Run a search first.";
+      $("ledger").innerHTML = "";
+      return;
+    }
+    var r = lastRows[0], allowed = r.e.mid;
+    var ded = Math.max(0, +$("ded").value || 0);
+    var coins = Math.min(100, Math.max(0, +$("coins").value || 0));
+    var copay = Math.max(0, +$("copay").value || 0);
+    var oop = Math.max(0, +$("oop").value || 0);
+
+    var rows = [];
+    var you;
+
+    if (copay > 0) {
+      you = Math.min(copay, allowed);
+      rows.push(["Flat copay for this service", money(you), false]);
+    } else {
+      var toDed = Math.min(allowed, ded);
+      var after = allowed - toDed;
+      var coinsAmt = after * (coins / 100);
+      you = toDed + coinsAmt;
+      rows.push(["Applied to your deductible", money(toDed), false]);
+      rows.push(["Remaining after deductible", money(after), true]);
+      rows.push(["Your coinsurance (" + coins + "% of that)", money(coinsAmt), false]);
+    }
+
+    var capped = false;
+    if (you > oop) { you = oop; capped = true; }
+
+    $("estFor").innerHTML = "Based on <b>" + esc(r.h.name) +
+      (r.h.campus && r.h.campus !== "All licensed locations" ? " &mdash; " + esc(r.h.campus) : "") +
+      "</b>, your top match for " + esc(lastCtx.svc.name) + ".";
+
+    var html = ['<li class="muted"><span>Negotiated allowed amount</span><span class="lv">' + money(allowed) + "</span></li>"];
+    rows.forEach(function (x) {
+      html.push('<li' + (x[2] ? ' class="muted"' : "") + "><span>" + esc(x[0]) + '</span><span class="lv">' + x[1] + "</span></li>");
+    });
+    if (capped) {
+      html.push('<li class="muted"><span>Capped by your out-of-pocket maximum</span><span class="lv">' + money(oop) + "</span></li>");
+    }
+    html.push('<li class="total"><span>You would pay about</span><span class="lv">' + money(you) + "</span></li>");
+    html.push('<li class="muted"><span>' + esc(lastCtx.payer) + " pays the rest</span><span class=\"lv\">" +
+      money(Math.max(0, allowed - you)) + "</span></li>");
+    $("ledger").innerHTML = html.join("");
+  }
+
+  /* ---------------- aftercare ---------------- */
+
+  function buildAftercare() {
     var items = [
-      ["Confirm the hospital is in network for your exact plan",
-        "Being listed under " + esc(payer) + " is not the same as being covered by your particular plan. Call the number on the back of your card and confirm " + best.h.name + " is in network for the plan you hold."],
-      ["Ask for the procedure code in writing",
-        "Request that the scheduler confirm <code>" + codeLbl + "</code> is the code they will bill. A different code is a different price, and this is the single most common reason an estimate misses."],
-      ["Request a Good Faith Estimate",
-        "Under the No Surprises Act, if you are uninsured or paying cash you are entitled to a written Good Faith Estimate before a scheduled service. Ask for it at least three days ahead."],
-      ["Ask whether the facility fee and physician fee are billed separately",
-        "Hospital outpatient departments usually bill both. St. Luke's publishes facility rates only; LVHN does not label which is which, so assume a separate physician bill is coming."],
-      ["Check whether prior authorization is required",
-        esc(payer) + " may require approval before the service. Without it a covered procedure can be denied in full, which makes the negotiated rate irrelevant."],
-      ["Find out where you stand against your deductible",
-        "The " + money(best.e.mid) + " shown is the allowed amount. If your deductible is unmet you may owe all of it; past your out-of-pocket maximum you may owe none. Your insurer's portal shows the current balance."]
+      ["Read the discharge instructions before you leave the building",
+       "Restrictions on driving, lifting, bathing and returning to work are in there, and so is the one thing most people miss: which symptoms mean call the office and which mean go to the emergency department. Ask the nurse to mark both."],
+      ["Fill prescriptions on the way home, not tomorrow",
+       "Pain control is much harder to regain than to maintain. If a drug needs prior authorisation, you want to discover that while the office is still open."],
+      ["Confirm the follow-up appointment is actually booked",
+       "&ldquo;Call us in two weeks&rdquo; is not a booking. Get a date before you leave, and ask whether the follow-up visit is bundled into the price of the procedure or billed separately."],
+      ["Expect three pieces of paper, and do not pay on the first",
+       "An <b>itemised hospital bill</b>, an <b>Explanation of Benefits</b> from your insurer, and often a <b>separate physician or anaesthesia bill</b>. The EOB is not a bill. Wait for it before paying anything."],
+      ["Check the hospital bill against the EOB line by line",
+       "The hospital should collect no more than the allowed amount on the EOB. If the bill is higher, or lists a service you did not have, call the billing office and ask for a corrected claim. Keep notes with dates and names."],
+      ["Ask for the financial assistance policy if the balance is unaffordable",
+       "Both networks are registered non-profits, so under IRS section 501(r) each must publish a written financial assistance policy and cannot bill a qualifying patient more than the amount generally billed to insured patients. Ask for it by that name."],
+      ["Dispute a surprise out-of-network charge",
+       "If an out-of-network provider treated you at an in-network hospital without your written consent, the federal No Surprises Act generally caps your share at the in-network rate. Raise it with your insurer before paying."]
     ];
-    $("stepList").innerHTML = items.map(function (it) {
-      return "<li><div><h3>" + esc(it[0]) + "</h3><p>" + it[1] + "</p></div></li>";
+    $("afterList").innerHTML = items.map(function (it) {
+      return "<li><div><h4>" + it[0] + "</h4><p>" + it[1] + "</p></div></li>";
     }).join("");
-    $("steps").hidden = false;
   }
 })();
 </script>

@@ -1,0 +1,259 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Lehigh Valley Price Finder - private S3 origin behind CloudFront, with the
+  rates API (API Gateway + Lambda + DynamoDB) mounted on the same distribution
+  at /api/* so the browser only ever talks to one origin and CORS never applies.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lv-price-finder
+    Description: Prefix for resource names.
+
+Resources:
+
+  # ------------------------------------------------------------------ data --
+  RatesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ProjectName}-rates"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+
+  # ----------------------------------------------------------------- lambda --
+  ApiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: read-rates
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Query]
+                Resource: !GetAtt RatesTable.Arn
+
+  ApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-api"
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt ApiRole.Arn
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          TABLE: !Ref RatesTable
+      Code:
+        ZipFile: |
+          import json, os, boto3
+          from boto3.dynamodb.conditions import Key
+
+          TABLE = boto3.resource("dynamodb").Table(os.environ["TABLE"])
+
+          def reply(code, body, cache="no-store"):
+              return {
+                  "statusCode": code,
+                  "headers": {"content-type": "application/json",
+                              "cache-control": cache},
+                  "body": json.dumps(body),
+              }
+
+          def handler(event, context):
+              path = event.get("rawPath", "")
+              q = event.get("queryStringParameters") or {}
+              try:
+                  if path.endswith("/meta"):
+                      item = TABLE.get_item(
+                          Key={"pk": "META", "sk": "BUNDLE"}).get("Item")
+                      if not item:
+                          return reply(503, {"error": "Reference data has not been loaded yet."})
+                      # Payloads are stored pre-serialised, so no Decimal round-trip.
+                      return reply(200, json.loads(item["body"]), "public, max-age=3600")
+
+                  if path.endswith("/rates"):
+                      service = (q.get("service") or "").strip()
+                      payer = (q.get("payer") or "").strip()
+                      if not service or not payer:
+                          return reply(400, {"error": "Both service and payer are required."})
+                      res = TABLE.query(KeyConditionExpression=Key("pk").eq(
+                          "P#%s#%s" % (service, payer)))
+                      out = {}
+                      for it in res.get("Items", []):
+                          out[it["sk"][2:]] = json.loads(it["body"])
+                      return reply(200, out, "public, max-age=300")
+
+                  return reply(404, {"error": "No such endpoint."})
+              except Exception:
+                  import traceback; traceback.print_exc()
+                  return reply(500, {"error": "Could not read price data."})
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${ProjectName}-api"
+      ProtocolType: HTTP
+
+  ApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ApiFunction.Arn
+      PayloadFormatVersion: "2.0"
+
+  MetaRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /api/meta
+      Target: !Sub "integrations/${ApiIntegration}"
+
+  RatesRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /api/rates
+      Target: !Sub "integrations/${ApiIntegration}"
+
+  ApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*"
+
+  # ---------------------------------------------------------------- hosting --
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-site-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+
+  SiteOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectName}-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # Cache API responses on the two query parameters that select a result.
+  ApiCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${ProjectName}-api-cache"
+        DefaultTTL: 300
+        MinTTL: 0
+        MaxTTL: 3600
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig: { CookieBehavior: none }
+          HeadersConfig: { HeaderBehavior: none }
+          QueryStringsConfig:
+            QueryStringBehavior: whitelist
+            QueryStrings: [service, payer]
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${ProjectName} site + api"
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: s3
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt SiteOAC.Id
+            # Empty OriginAccessIdentity is required alongside OAC.
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+          - Id: api
+            DomainName: !Select [2, !Split ["/", !GetAtt HttpApi.ApiEndpoint]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        DefaultCacheBehavior:
+          TargetOriginId: s3
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          AllowedMethods: [GET, HEAD]
+          # Managed-CachingOptimized
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            AllowedMethods: [GET, HEAD]
+            CachePolicyId: !Ref ApiCachePolicy
+            # Managed-AllViewerExceptHostHeader
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+Outputs:
+  SiteURL:
+    Description: Public URL of the site.
+    Value: !Sub "https://${Distribution.DomainName}"
+  BucketName:
+    Description: S3 bucket to sync dist/ into.
+    Value: !Ref SiteBucket
+  DistributionId:
+    Description: CloudFront distribution id, for cache invalidation.
+    Value: !Ref Distribution
+  TableName:
+    Description: DynamoDB table holding the rates.
+    Value: !Ref RatesTable
+  ApiEndpoint:
+    Description: Direct API Gateway endpoint (bypasses CloudFront; useful for debugging).
+    Value: !GetAtt HttpApi.ApiEndpoint
