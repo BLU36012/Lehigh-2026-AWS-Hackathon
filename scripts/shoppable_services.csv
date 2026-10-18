@@ -75,3 +75,16 @@ code,code_type,category,service_name
 481,MS-DRG,Inpatient Surgical,Hip and femur procedures except major joint with CC
 065,MS-DRG,Inpatient Medical,Intracranial hemorrhage or cerebral infarction with CC
 066,MS-DRG,Inpatient Medical,Intracranial hemorrhage or cerebral infarction without CC/MCC
+A0427,HCPCS,Ancillary,Ambulance ALS emergency transport
+A0429,HCPCS,Ancillary,Ambulance BLS emergency transport
+A0425,HCPCS,Ancillary,Ambulance ground mileage per mile
+36415,HCPCS,Ancillary,Routine blood draw (venipuncture)
+99152,HCPCS,Ancillary,Moderate sedation first 15 minutes
+99153,HCPCS,Ancillary,Moderate sedation each extra 15 minutes
+00810,HCPCS,Ancillary,Anesthesia for lower GI endoscopy
+88312,HCPCS,Ancillary,Pathology special stain
+96365,HCPCS,Ancillary,IV infusion first hour
+96374,HCPCS,Ancillary,IV push single drug
+J1885,HCPCS,Ancillary,Ketorolac pain injection
+99281,HCPCS,Emergency,Emergency department visit level 1
+99282,HCPCS,Emergency,Emergency department visit level 2

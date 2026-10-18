@@ -250,6 +250,31 @@ summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accen
 @media (max-width: 820px) { .estGrid { grid-template-columns: 1fr; } }
 .estFields { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 @media (max-width: 420px) { .estFields { grid-template-columns: 1fr; } }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.presets button { padding: 7px 13px; font-size: 12.5px; font-weight: 500; background: var(--surface-2); color: var(--fg); border: var(--line-w) solid var(--line); border-radius: 20px; cursor: pointer; }
+.presets button:hover { border-color: var(--accent); color: var(--accent); }
+.presets button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.split { margin-bottom: 14px; }
+.splitBar { height: 16px; border-radius: 5px; background: var(--meter); overflow: hidden; border: var(--line-w) solid var(--line); }
+.splitBar i { display: block; height: 100%; background: var(--sluhn); }
+.splitKey { display: flex; gap: 16px; margin-top: 7px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.splitKey span { display: inline-flex; align-items: center; gap: 6px; }
+.splitKey b { font-variant-numeric: tabular-nums; color: var(--fg); }
+.sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.sw.you { background: var(--sluhn); }
+.sw.ins { background: var(--meter); }
+.companions { margin-top: 18px; }
+.companions h3 { font-size: 15px; font-weight: 600; }
+.cList { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.cList li { display: flex; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+.cList li:last-child { border-bottom: none; }
+.cList label { display: flex; gap: 9px; align-items: center; cursor: pointer; min-width: 0; font-size: 13.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--fg); }
+.cList input { width: auto; padding: 0; accent-color: var(--accent); flex: none; }
+.cList .cc { font-family: var(--mono); font-size: 11px; color: var(--faint); flex: none; }
+.cList .cv { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; flex: none; }
+.cList .cv.none { color: var(--faint); font-weight: 400; font-style: italic; }
+.cTotal { margin-top: 12px; padding-top: 11px; border-top: 2px solid var(--line); display: flex; font-size: 14px; font-weight: 600; }
+.cTotal .cv { margin-left: auto; font-variant-numeric: tabular-nums; }
 .ledger { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .ledger li { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
 .ledger li:last-child { border-bottom: none; }
@@ -326,6 +351,12 @@ footer a { color: var(--muted); }
   <section id="panel-bill" role="tabpanel" aria-labelledby="tab-bill" class="panel" hidden>
     <h2>Estimate my bill</h2>
     <p class="sub" style="margin-top:6px">The negotiated rate is what the hospital collects in total. What you owe depends on your own plan, so put your numbers in.</p>
+    <div class="presets" id="presets">
+      <button type="button" data-p="newyear">Start of plan year</button>
+      <button type="button" data-p="met">Deductible already met</button>
+      <button type="button" data-p="hdhp">High-deductible plan</button>
+      <button type="button" data-p="medicare">Medicare Part B</button>
+    </div>
     <div class="estGrid" style="margin-top:18px">
       <div>
         <div class="estFields">
@@ -350,7 +381,15 @@ footer a { color: var(--muted); }
       </div>
       <div>
         <h3 style="font-size:14px;font-weight:600" id="estFor">&nbsp;</h3>
+        <div class="split" id="split" hidden>
+          <div class="splitBar"><i id="splitYou"></i></div>
+          <div class="splitKey">
+            <span><i class="sw you"></i><b id="splitYouPct">&nbsp;</b> you</span>
+            <span><i class="sw ins"></i><b id="splitInsPct">&nbsp;</b> <span id="splitInsName">insurer</span></span>
+          </div>
+        </div>
         <ul class="ledger" id="ledger"></ul>
+        <p class="notice" id="whyAll" style="margin-top:14px" hidden></p>
         <p class="notice" style="margin-top:14px">An estimate from the numbers you entered, not a quote. It assumes the service is covered, in network, needs no prior authorisation, and that no separate physician or anaesthesia bill follows. Any of those can change the total.</p>
       </div>
     </div>
@@ -649,6 +688,103 @@ footer a { color: var(--muted); }
     $(id).addEventListener("input", estimate);
   });
 
+  /* ---------------- commonly co-billed services ---------------- */
+
+  // What else typically turns up as a separate line item. Keyed by the
+  // category of the service being searched; every code here is one this
+  // database actually carries a price for.
+  var COMPANION_BY_CAT = {
+    "Emergency":               ["A0429", "A0427", "A0425", "85025", "80053", "93000", "71046", "70450", "96374", "J1885"],
+    "Endoscopy":               ["00810", "99152", "99153", "88305", "88312"],
+    "Surgery":                 ["99152", "99153", "88305", "88312", "96374", "J1885"],
+    "Pain Management":         ["99152", "96374"],
+    "Laboratory":              ["36415"],
+    "Imaging":                 ["96374"],
+    "Cardiology":              ["93000", "36415"],
+    "Obstetrics":              ["85025", "80053", "96374"],
+    "Evaluation & Management": ["36415", "85025", "80053"],
+    "Preventive":              ["36415"],
+    "Behavioral Health":       [],
+    "Therapy":                 [],
+    "Ancillary":               [],
+    "Inpatient Medical":       [],
+    "Inpatient Surgical":      [],
+    "Inpatient Obstetric":     []
+  };
+
+  var extras = {};   // code -> dollar amount currently ticked
+
+  function companionCodes(svc) {
+    var list = (COMPANION_BY_CAT[svc.cat] || []).filter(function (c) {
+      return c !== svc.code && BYCODE[c];
+    });
+    return list;
+  }
+
+  function loadCompanions(svc, payer, hospitalId) {
+    var codes = companionCodes(svc);
+    if (!codes.length) return Promise.resolve([]);
+    return Promise.all(codes.map(function (code) {
+      return loadRates(code, payer)
+        .then(function (priced) {
+          var e = (priced || {})[hospitalId];
+          return { code: code, svc: BYCODE[code], e: e || null };
+        })
+        .catch(function () { return { code: code, svc: BYCODE[code], e: null }; });
+    }));
+  }
+
+  function renderCompanions(svc, hospital, items) {
+    var host = $("companions");
+    if (!host) return;
+    if (svc.type === "MS-DRG") {
+      host.innerHTML = '<h3>Commonly billed alongside</h3>' +
+        '<p class="hint" style="margin-top:6px">An MS-DRG is a single bundled payment for the whole inpatient stay, so ' +
+        "room, nursing, theatre and most supplies are already inside the figure above. " +
+        "Physician, surgeon and anaesthesia fees are usually billed separately and are not in this file.</p>";
+      host.hidden = false;
+      return;
+    }
+    if (!items.length) {
+      host.hidden = true;
+      return;
+    }
+    var html = ['<h3>Commonly billed alongside</h3>',
+      '<p class="hint" style="margin-top:6px">These arrive as separate line items on the same visit. ' +
+      "Rates shown are for " + esc(hospital.name) +
+      (hospital.campus && hospital.campus !== "All licensed locations" ? " &mdash; " + esc(hospital.campus) : "") +
+      ". Tick what applies and it carries into <b>Estimate my bill</b>.</p>",
+      '<ul class="cList">'];
+    items.forEach(function (it) {
+      var has = it.e && typeof it.e.mid === "number";
+      html.push("<li><label>" +
+        '<input type="checkbox" data-code="' + esc(it.code) + '"' +
+        (has ? ' data-amt="' + it.e.mid + '"' : " disabled") + ">" +
+        '<span class="cc">' + esc(it.code) + "</span>" +
+        "<span>" + esc(it.svc.name) + "</span></label>" +
+        '<span class="cv' + (has ? "" : " none") + '">' +
+        (has ? (it.e.mid > 0 ? money(it.e.mid) : "$0 (bundled)") : "not published") +
+        "</span></li>");
+    });
+    html.push("</ul>");
+    html.push('<div class="cTotal"><span>Selected extras</span><span class="cv" id="cTotal">$0</span></div>');
+    host.innerHTML = html.join("");
+    host.hidden = false;
+
+    host.addEventListener("change", function (e) {
+      var cb = e.target.closest("input[data-code]");
+      if (!cb) return;
+      if (cb.checked) { extras[cb.dataset.code] = +cb.dataset.amt; }
+      else { delete extras[cb.dataset.code]; }
+      $("cTotal").textContent = money(extrasTotal());
+      estimate();
+    });
+  }
+
+  function extrasTotal() {
+    return Object.keys(extras).reduce(function (a, k) { return a + extras[k]; }, 0);
+  }
+
   /* ---------------- geo ---------------- */
 
   var K = Math.cos(40.6 * Math.PI / 180);
@@ -764,8 +900,14 @@ footer a { color: var(--muted); }
       rows.push({ h: h, e: e, dist: here ? miles(here[0], here[1], h.lat, h.lon) : null });
     });
     lastRows = score(rows).slice(0, 3);
+    extras = {};
     render(here);
     estimate();
+    if (lastRows.length) {
+      loadCompanions(c.svc, c.payer, lastRows[0].h.id).then(function (items) {
+        renderCompanions(c.svc, lastRows[0].h, items);
+      });
+    }
   }
 
   /* ---------------- render ---------------- */
@@ -901,6 +1043,7 @@ footer a { color: var(--muted); }
         " appears only in " + esc(only) + "'s file, so there is nothing to compare against.</div>");
     }
 
+    out.push('<section class="panel companions" id="companions" hidden></section>');
     $("panel-results").innerHTML = out.join("");
     wireTips(rows);
     $("footNote").textContent =
@@ -1012,52 +1155,119 @@ footer a { color: var(--muted); }
 
   /* ---------------- estimate my bill ---------------- */
 
+  // Four realistic positions, because the answer swings entirely on where you
+  // are against your deductible. Traditional Medicare is here because, unlike
+  // commercial plans, Part B has no out-of-pocket maximum at all.
+  var PRESETS = {
+    newyear:  { ded: 2000, coins: 20, copay: 0, oop: 7000 },
+    met:      { ded: 0,    coins: 20, copay: 0, oop: 5000 },
+    hdhp:     { ded: 5000, coins: 20, copay: 0, oop: 8050 },
+    medicare: { ded: 257,  coins: 20, copay: 0, oop: 99999 }
+  };
+  var activePreset = null;
+
+  (function wirePresets() {
+    var box = $("presets");
+    box.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-p]");
+      if (!b) return;
+      var p = PRESETS[b.dataset.p];
+      $("ded").value = p.ded; $("coins").value = p.coins;
+      $("copay").value = p.copay; $("oop").value = p.oop;
+      activePreset = b.dataset.p;
+      Array.prototype.forEach.call(box.children, function (x) {
+        x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      });
+      estimate();
+    });
+  })();
+
+  ["ded", "coins", "copay", "oop"].forEach(function (id) {
+    $(id).addEventListener("input", function () {
+      activePreset = null;
+      Array.prototype.forEach.call($("presets").children, function (x) {
+        x.setAttribute("aria-pressed", "false");
+      });
+      estimate();
+    });
+  });
+
   function estimate() {
     if (!lastRows || !lastRows.length) {
       $("estFor").textContent = "Run a search first.";
       $("ledger").innerHTML = "";
+      $("split").hidden = true;
       return;
     }
-    var r = lastRows[0], allowed = r.e.mid;
+    var r = lastRows[0];
+    var base = r.e.mid;
+    var ex = extrasTotal();
+    var allowed = base + ex;
+
     var ded = Math.max(0, +$("ded").value || 0);
     var coins = Math.min(100, Math.max(0, +$("coins").value || 0));
     var copay = Math.max(0, +$("copay").value || 0);
     var oop = Math.max(0, +$("oop").value || 0);
 
-    var rows = [];
-    var you;
-
+    var lines = [], you;
     if (copay > 0) {
       you = Math.min(copay, allowed);
-      rows.push(["Flat copay for this service", money(you), false]);
+      lines.push(["Flat copay for this service", money(you), false]);
     } else {
       var toDed = Math.min(allowed, ded);
       var after = allowed - toDed;
       var coinsAmt = after * (coins / 100);
       you = toDed + coinsAmt;
-      rows.push(["Applied to your deductible", money(toDed), false]);
-      rows.push(["Remaining after deductible", money(after), true]);
-      rows.push(["Your coinsurance (" + coins + "% of that)", money(coinsAmt), false]);
+      lines.push(["Applied to your deductible", money(toDed), false]);
+      lines.push(["Left after the deductible", money(after), true]);
+      lines.push(["Your coinsurance (" + coins + "% of that)", money(coinsAmt), false]);
     }
 
     var capped = false;
     if (you > oop) { you = oop; capped = true; }
+    var ins = Math.max(0, allowed - you);
+    var youPct = allowed > 0 ? Math.round((you / allowed) * 100) : 0;
 
     $("estFor").innerHTML = "Based on <b>" + esc(r.h.name) +
       (r.h.campus && r.h.campus !== "All licensed locations" ? " &mdash; " + esc(r.h.campus) : "") +
-      "</b>, your top match for " + esc(lastCtx.svc.name) + ".";
+      "</b>, your top match for " + esc(lastCtx.svc.name) +
+      (ex > 0 ? ", plus " + Object.keys(extras).length + " extra line item" +
+        (Object.keys(extras).length === 1 ? "" : "s") : "") + ".";
 
-    var html = ['<li class="muted"><span>Negotiated allowed amount</span><span class="lv">' + money(allowed) + "</span></li>"];
-    rows.forEach(function (x) {
-      html.push('<li' + (x[2] ? ' class="muted"' : "") + "><span>" + esc(x[0]) + '</span><span class="lv">' + x[1] + "</span></li>");
+    $("split").hidden = false;
+    $("splitYou").style.width = youPct + "%";
+    $("splitYouPct").textContent = youPct + "%";
+    $("splitInsPct").textContent = (100 - youPct) + "%";
+    $("splitInsName").textContent = lastCtx.payer;
+
+    var html = ['<li class="muted"><span>Negotiated rate for the procedure</span><span class="lv">' + money(base) + "</span></li>"];
+    if (ex > 0) {
+      html.push('<li class="muted"><span>Extra line items you ticked</span><span class="lv">' + money(ex) + "</span></li>");
+      html.push('<li class="muted"><span>Total allowed amount</span><span class="lv">' + money(allowed) + "</span></li>");
+    }
+    lines.forEach(function (x) {
+      html.push("<li" + (x[2] ? ' class="muted"' : "") + "><span>" + esc(x[0]) + '</span><span class="lv">' + x[1] + "</span></li>");
     });
     if (capped) {
       html.push('<li class="muted"><span>Capped by your out-of-pocket maximum</span><span class="lv">' + money(oop) + "</span></li>");
     }
     html.push('<li class="total"><span>You would pay about</span><span class="lv">' + money(you) + "</span></li>");
-    html.push('<li class="muted"><span>' + esc(lastCtx.payer) + " pays the rest</span><span class=\"lv\">" +
-      money(Math.max(0, allowed - you)) + "</span></li>");
+    html.push('<li class="muted"><span>' + esc(lastCtx.payer) + ' pays</span><span class="lv">' + money(ins) + "</span></li>");
+    if (activePreset === "medicare") {
+      html.push('<li class="muted"><span>Traditional Medicare has no out-of-pocket maximum</span><span class="lv">&mdash;</span></li>');
+    }
     $("ledger").innerHTML = html.join("");
+
+    var note = $("whyAll");
+    if (youPct >= 100 && copay === 0) {
+      note.innerHTML = "<b>You pay all of it, and that is normal.</b> This bill (" + money(allowed) +
+        ") is smaller than your remaining deductible (" + money(ded) +
+        "), so none of it reaches the coinsurance stage and " + esc(lastCtx.payer) +
+        " pays nothing. Most shoppable outpatient care works this way, which is exactly why the negotiated rate is worth comparing — at this point you are spending your own money, not your insurer’s. Try <b>Deductible already met</b> above to see the split change.";
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
   }
 
   /* ---------------- aftercare ---------------- */
