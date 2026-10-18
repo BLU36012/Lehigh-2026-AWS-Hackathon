@@ -16,6 +16,7 @@ DIST = os.path.join(ROOT, "dist")
 DESC = ("Compare negotiated hospital prices across Lehigh Valley Health Network "
         "and St. Luke's by insurer, procedure and ZIP code.")
 
+
 src = open(SRC, encoding="utf-8").read()
 
 # Everything before the page body is head material (<title>, fonts, <style>).
@@ -34,7 +35,6 @@ doc = f"""<!doctype html>
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{DESC}">
 <meta property="og:type" content="website">
-<script>window.LVP_API = "/api";</script>
 <style>
   :root {{ color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }}
   body {{ margin: 0; }}
@@ -51,7 +51,8 @@ doc = f"""<!doctype html>
 
 os.makedirs(DIST, exist_ok=True)
 open(os.path.join(DIST, "index.html"), "w", encoding="utf-8").write(doc)
-shutil.copy(os.path.join(ROOT, "web", "prices.json"), os.path.join(DIST, "prices.json"))
+for data in ("prices.json", "i18n.json"):
+    shutil.copy(os.path.join(ROOT, "web", data), os.path.join(DIST, data))
 
 for f in sorted(os.listdir(DIST)):
     print(f"  dist/{f:<14} {os.path.getsize(os.path.join(DIST, f)) / 1024:>7.0f} KB")

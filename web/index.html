@@ -116,6 +116,20 @@ h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 
 .headTop { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.headTools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.langSel { width: auto; padding: 6px 11px; font-size: 12.5px; border-radius: 20px; background: var(--surface); border: var(--line-w) solid var(--line); cursor: pointer; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Arabic: mirror the reading order. Numbers, money and codes stay LTR. */
+[dir="rtl"] .qLbl, [dir="rtl"] label { text-align: right; }
+[dir="rtl"] .hDist, [dir="rtl"] .matchBox { margin-left: 0; margin-right: auto; text-align: left; }
+[dir="rtl"] .plans .pv, [dir="rtl"] .ledger .lv, [dir="rtl"] .cList .cv, [dir="rtl"] .cTotal .cv { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .card { border-left: none; border-right: 3px solid var(--net); }
+[dir="rtl"] .steps li::before, [dir="rtl"] .frow .fl b { direction: ltr; }
+[dir="rtl"] .price, [dir="rtl"] .hDist b, [dir="rtl"] .matchBox b,
+[dir="rtl"] .barScale, [dir="rtl"] .lv, [dir="rtl"] .cv, [dir="rtl"] .fv,
+[dir="rtl"] .combo-list .code, [dir="rtl"] .cList .cc { direction: ltr; unicode-bidi: embed; }
+[dir="rtl"] .splitBar i { float: right; }
+[dir="rtl"] .gBody dl { direction: rtl; }
 .hcBtn { padding: 6px 13px; font-size: 12.5px; font-weight: 600; background: var(--surface); color: var(--accent); border: var(--line-w) solid var(--line); border-radius: 20px; cursor: pointer; }
 .hcBtn:hover { border-color: var(--accent); }
 .hcBtn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
@@ -206,6 +220,8 @@ h2 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spac
 @media (max-width: 920px) { .mapPanel { position: static; } }
 .mapPanel svg text { font-family: var(--ui); }
 .mapPanel svg { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
+.dirLink { font-size: 12.5px; font-weight: 500; color: var(--accent); text-decoration: none; }
+.dirLink:hover { text-decoration: underline; }
 .mapNote { margin-top: 10px; font-size: 11.5px; color: var(--faint); line-height: 1.45; }
 
 .cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
@@ -357,48 +373,56 @@ footer a { color: var(--muted); }
 
   <header>
     <div class="headTop">
-      <p class="eyebrow">Hospital price &amp; quality &middot; Lehigh Valley</p>
-      <button type="button" id="hcToggle" class="hcBtn" aria-pressed="false">High contrast</button>
+      <p class="eyebrow" data-i18n>Hospital price &amp; quality &middot; Lehigh Valley</p>
+      <div class="headTools">
+        <label class="srOnly" for="lang">Language</label>
+        <select id="lang" class="langSel"></select>
+        <button type="button" id="hcToggle" class="hcBtn" aria-pressed="false" data-i18n>High contrast</button>
+      </div>
     </div>
-    <h1>What will this actually cost?</h1>
+    <h1 data-i18n>What will this actually cost?</h1>
     <p class="lede">Lehigh Valley Health Network and St.&nbsp;Luke's publish every rate they have negotiated with every insurer. The same scan can differ <strong>14&times;</strong> between two cards at the same hospital. Rank what matters to you and compare.</p>
   </header>
 
   <form class="panel" id="searchForm" novalidate>
     <div class="fields">
       <div class="field" id="f-zip">
-        <label for="zip">ZIP code</label>
+        <label for="zip" data-i18n>ZIP code</label>
         <input id="zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="18015">
       </div>
       <div class="field" id="f-payer">
-        <label for="payer">Insurance provider</label>
+        <label for="payer" data-i18n>Insurance provider</label>
         <select id="payer" name="payer"><option value="">Loading&hellip;</option></select>
       </div>
       <div class="field" id="f-plan">
-        <label for="plan">Plan</label>
+        <label for="plan" data-i18n>Plan</label>
         <select id="plan" name="plan"><option value="">Any plan</option></select>
       </div>
       <div class="field" id="f-proc">
-        <label for="proc">Medical procedure</label>
+        <label for="proc" data-i18n>Medical procedure</label>
         <input id="proc" name="proc" role="combobox" aria-expanded="false" aria-autocomplete="list"
-               aria-controls="procList" autocomplete="off" placeholder="Search 89 procedures or a CPT code">
+               aria-controls="procList" autocomplete="off" data-i18n-ph placeholder="Search 89 procedures or a CPT code">
         <ul class="combo-list" id="procList" role="listbox" aria-label="Procedures" hidden></ul>
       </div>
-      <div class="field"><button type="submit" class="go">Search</button></div>
+      <div class="field"><button type="submit" class="go" data-i18n>Search</button></div>
     </div>
     <p class="formError" id="formError" role="alert" hidden></p>
 
     <div class="quick">
       <div class="qRow">
-        <span class="qLbl">Browse</span>
+        <span class="qLbl" data-i18n>Browse</span>
         <div class="qPills" id="catPills"></div>
       </div>
       <div class="qRow">
-        <span class="qLbl">Common</span>
+        <span class="qLbl" data-i18n>Common</span>
         <div class="qPills" id="popPills"></div>
       </div>
       <div class="qRow">
-        <span class="qLbl">Insurer</span>
+        <span class="qLbl" data-i18n>Symptom</span>
+        <div class="qPills" id="condPills"></div>
+      </div>
+      <div class="qRow">
+        <span class="qLbl" data-i18n>Insurer</span>
         <div class="qPills" id="payerPills"></div>
       </div>
     </div>
@@ -406,15 +430,15 @@ footer a { color: var(--muted); }
 
   <section class="panel" aria-labelledby="rankTitle">
     <div class="rankHead">
-      <h3 id="rankTitle">What matters most to you?</h3>
-      <p class="hint">Drag to reorder, or use the arrows. Top of the list counts most.</p>
+      <h3 id="rankTitle" data-i18n>What matters most to you?</h3>
+      <p class="hint" data-i18n>Drag to reorder, or use the arrows. Top of the list counts most.</p>
     </div>
     <ol class="ranker" id="ranker"></ol>
   </section>
 
 
   <details class="panel glossary" id="glossary">
-    <summary><b>How to read this</b> &mdash; why the same scan costs different amounts at the same hospital</summary>
+    <summary><b data-i18n>How to read this</b> &mdash; why the same scan costs different amounts at the same hospital</summary>
     <div class="gBody">
       <p>A hospital does not have one price. It has a separate negotiated price with every insurer, and often a different one for each plan that insurer sells. A lumbar MRI at Lehigh Valley Hospital runs from <b>$212</b> on one Cigna plan to <b>$3,049</b> on an Independence Blue Cross PPO. Same scanner, same radiologist, same building. The only thing that changed is the card in your wallet.</p>
       <dl>
@@ -443,49 +467,49 @@ footer a { color: var(--muted); }
   </details>
 
   <div class="tabs" role="tablist" aria-label="Views">
-    <button role="tab" id="tab-results" aria-controls="panel-results" aria-selected="true">Hospitals</button>
-    <button role="tab" id="tab-after" aria-controls="panel-after" aria-selected="false">Aftercare</button>
-    <button role="tab" id="tab-bill" aria-controls="panel-bill" aria-selected="false">Estimate my bill</button>
+    <button role="tab" id="tab-results" aria-controls="panel-results" aria-selected="true" data-i18n>Hospitals</button>
+    <button role="tab" id="tab-after" aria-controls="panel-after" aria-selected="false" data-i18n>Aftercare</button>
+    <button role="tab" id="tab-bill" aria-controls="panel-bill" aria-selected="false" data-i18n>Estimate my bill</button>
   </div>
 
   <section id="panel-results" role="tabpanel" aria-labelledby="tab-results" aria-live="polite">
-    <p class="skeleton">Loading price data&hellip;</p>
+    <p class="skeleton" data-i18n>Loading price data&hellip;</p>
   </section>
 
   <section id="panel-after" role="tabpanel" aria-labelledby="tab-after" class="panel steps" hidden>
-    <h2>After the procedure</h2>
+    <h2 data-i18n>After the procedure</h2>
     <p class="sub" style="margin-top:6px">The clinical part ends at discharge. The billing part runs for about three months after it.</p>
     <ol id="afterList"></ol>
   </section>
 
   <section id="panel-bill" role="tabpanel" aria-labelledby="tab-bill" class="panel" hidden>
-    <h2>Estimate my bill</h2>
+    <h2 data-i18n>Estimate my bill</h2>
     <p class="sub" style="margin-top:6px">The negotiated rate is what the hospital collects in total. What you owe depends on your own plan, so put your numbers in.</p>
-    <p class="hint" style="margin-top:14px">Pick a situation, or type your own numbers below.</p>
+    <p class="hint" style="margin-top:14px" data-i18n>Pick a situation, or type your own numbers below.</p>
     <div class="presets" id="presets">
-      <button type="button" data-p="ppo">Standard PPO</button>
-      <button type="button" data-p="hdhp">High-deductible plan</button>
-      <button type="button" data-p="met">Deductible already met</button>
-      <button type="button" data-p="medicare">Medicare Part B</button>
-      <button type="button" data-p="uninsured">Uninsured / self-pay</button>
+      <button type="button" data-p="ppo" data-i18n>Standard PPO</button>
+      <button type="button" data-p="hdhp" data-i18n>High-deductible plan</button>
+      <button type="button" data-p="met" data-i18n>Deductible already met</button>
+      <button type="button" data-p="medicare" data-i18n>Medicare Part B</button>
+      <button type="button" data-p="uninsured" data-i18n>Uninsured / self-pay</button>
     </div>
     <div class="estGrid" style="margin-top:18px">
       <div id="planInputs">
         <div class="estFields">
           <div class="field">
-            <label for="ded"><span class="jt" title="What you pay yourself before the insurer contributes anything.">Deductible</span> remaining</label>
+            <label for="ded"><span class="jt" title="What you pay yourself before the insurer contributes anything." data-i18n>Deductible</span> <span data-i18n>remaining</span></label>
             <input id="ded" type="number" min="0" step="50" value="1500" inputmode="numeric">
           </div>
           <div class="field">
-            <label for="coins"><span class="jt" title="Your percentage share after the deductible is met.">Coinsurance</span> %</label>
+            <label for="coins"><span class="jt" title="Your percentage share after the deductible is met." data-i18n>Coinsurance</span> %</label>
             <input id="coins" type="number" min="0" max="100" step="5" value="20" inputmode="numeric">
           </div>
           <div class="field">
-            <label for="copay">Flat copay (if any)</label>
+            <label for="copay" data-i18n>Flat copay (if any)</label>
             <input id="copay" type="number" min="0" step="5" value="0" inputmode="numeric">
           </div>
           <div class="field">
-            <label for="oop"><span class="jt" title="The yearly ceiling on your own spending. Traditional Medicare has none.">Out-of-pocket max</span> left</label>
+            <label for="oop"><span class="jt" title="The yearly ceiling on your own spending. Traditional Medicare has none." data-i18n>Out-of-pocket max</span> <span data-i18n>left</span></label>
             <input id="oop" type="number" min="0" step="100" value="6000" inputmode="numeric">
           </div>
         </div>
@@ -496,13 +520,13 @@ footer a { color: var(--muted); }
         <div class="split" id="split" hidden>
           <div class="splitBar"><i id="splitYou"></i></div>
           <div class="splitKey">
-            <span><i class="sw you"></i><b id="splitYouPct">&nbsp;</b> you</span>
+            <span><i class="sw you"></i><b id="splitYouPct">&nbsp;</b> <span data-i18n>you</span></span>
             <span><i class="sw ins"></i><b id="splitInsPct">&nbsp;</b> <span id="splitInsName">insurer</span></span>
           </div>
         </div>
         <ul class="ledger" id="ledger"></ul>
         <div id="printRow" hidden style="margin-top:14px">
-          <button type="button" class="go" id="printBtn">Print or save this summary</button>
+          <button type="button" class="go" id="printBtn" data-i18n>Print or save this summary</button>
         </div>
         <p class="notice" id="feeNote" style="margin-top:14px" hidden></p>
         <p class="notice" id="whyAll" style="margin-top:14px" hidden></p>
@@ -534,6 +558,77 @@ footer a { color: var(--muted); }
     ? window.LVP_API.replace(/\/$/, "") : null;
 
   var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------------- translation ----------------
+     Keys are the English source strings, so anything not yet translated
+     simply renders in English rather than showing a key name. */
+
+  var I18N = null, LANG = "en";
+
+  function tr(en) {
+    if (LANG === "en" || !I18N) return en;
+    var d = I18N.ui[LANG];
+    return (d && d[en]) || en;
+  }
+  function trIn(group, en) {
+    if (LANG === "en" || !I18N || !I18N[group]) return en;
+    var d = I18N[group][LANG];
+    return (d && d[en]) || en;
+  }
+  function svcName(sv) { return trIn("svc", sv.code) === sv.code ? sv.name : trIn("svc", sv.code); }
+  function catName(c) { return trIn("cat", c); }
+  // "Please enter a, b and c" has to join in the active language.
+  function joinList(parts) {
+    if (parts.length < 2) return parts[0] || "";
+    return parts.slice(0, -1).join(", ") + " " + tr("and") + " " + parts[parts.length - 1];
+  }
+
+  function markStatic() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      if (el.dataset.en === undefined) { el.dataset.en = el.innerHTML; }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-ph]"), function (el) {
+      if (el.dataset.enPh === undefined) { el.dataset.enPh = el.getAttribute("placeholder") || ""; }
+    });
+  }
+  function applyStatic() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      el.innerHTML = tr(el.dataset.en);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-ph]"), function (el) {
+      el.setAttribute("placeholder", tr(el.dataset.enPh));
+    });
+  }
+
+  function setLang(code) {
+    LANG = code;
+    var meta = (I18N && I18N.meta[code]) || { dir: "ltr" };
+    document.documentElement.setAttribute("lang", code);
+    document.documentElement.setAttribute("dir", meta.dir);
+    try { localStorage.setItem("lvp-lang", code); } catch (e) { /* private window */ }
+    applyStatic();
+    if (D) {
+      buildPayers();
+      buildQuickPicks();
+      drawRanker();
+      buildAftercare();
+      if ($("payer").value) { buildPlans($("payer").value); }
+      if (picked) { input.value = labelFor(picked); }
+      if (lastCtx) { rerank(); } else { estimate(); }
+    }
+  }
+
+  function buildLangPicker() {
+    var sel = $("lang");
+    var order = ["en"].concat(I18N ? I18N.langs : []);
+    sel.innerHTML = order.map(function (c) {
+      var m = (I18N && I18N.meta[c]) || { short: c.toUpperCase() };
+      var label = m.native || m.name || c;
+      return '<option value="' + c + '">' + esc(label) + "</option>";
+    }).join("");
+    sel.value = LANG;
+    sel.addEventListener("change", function () { setLang(this.value); });
+  }
   var money = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var esc = function (s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -601,11 +696,11 @@ footer a { color: var(--muted); }
       var f = FACTORS.filter(function (x) { return x.k === k; })[0];
       return '<li draggable="true" data-k="' + k + '" tabindex="0">' +
         '<span class="pos">' + (i + 1) + "</span>" +
-        '<span class="nm">' + esc(f.n) + "<small>" + esc(f.d) + "</small></span>" +
-        '<span class="wt">' + Math.round(w[k] * 100) + "% weight</span>" +
+        '<span class="nm">' + esc(tr(f.n)) + "<small>" + esc(tr(f.d)) + "</small></span>" +
+        '<span class="wt">' + Math.round(w[k] * 100) + "% " + esc(tr("weight")) + "</span>" +
         '<span class="moves">' +
-          '<button type="button" data-mv="-1" aria-label="Move ' + esc(f.n) + ' up"' + (i === 0 ? " disabled" : "") + ">&uarr;</button>" +
-          '<button type="button" data-mv="1" aria-label="Move ' + esc(f.n) + ' down"' + (i === order.length - 1 ? " disabled" : "") + ">&darr;</button>" +
+          '<button type="button" data-mv="-1" aria-label="' + esc(tr("Move {x} up").replace("{x}", tr(f.n))) + '"' + (i === 0 ? " disabled" : "") + ">&uarr;</button>" +
+          '<button type="button" data-mv="1" aria-label="' + esc(tr("Move {x} down").replace("{x}", tr(f.n))) + '"' + (i === order.length - 1 ? " disabled" : "") + ">&darr;</button>" +
         "</span></li>";
     }).join("");
     $("ranker").innerHTML = html;
@@ -664,12 +759,29 @@ footer a { color: var(--muted); }
 
   /* ---------------- boot ---------------- */
 
-  loadMeta()
-    .then(function (d) {
+  Promise.all([
+    loadMeta(),
+    getJSON("i18n.json").catch(function () { return null; })
+  ])
+    .then(function (both) {
+      var d = both[0];
+      I18N = both[1];
       D = d;
       SVC = d.services;
       d.services.forEach(function (s) { BYCODE[s.code] = s; });
       d.hospitals.forEach(function (h) { HOSP[h.id] = h; });
+      markStatic();
+      var saved = null;
+      try { saved = localStorage.getItem("lvp-lang"); } catch (e) { /* blocked */ }
+      if (saved && (saved === "en" || (I18N && I18N.langs.indexOf(saved) > -1))) {
+        LANG = saved;
+      }
+      buildLangPicker();
+      var m = (I18N && I18N.meta[LANG]) || { dir: "ltr" };
+      document.documentElement.setAttribute("lang", LANG);
+      document.documentElement.setAttribute("dir", m.dir);
+      applyStatic();
+
       buildPayers();
       buildQuickPicks();
       drawRanker();
@@ -692,7 +804,7 @@ footer a { color: var(--muted); }
       ["Lehigh Valley Health Network only", function (p) { return p.nets.length === 1 && p.nets[0] === "LVHN"; }],
       ["St. Luke's only", function (p) { return p.nets.length === 1 && p.nets[0] === "SLUHN"; }]
     ];
-    var html = '<option value="">Select your insurer&hellip;</option>';
+    var html = '<option value="">' + tr('Select your insurer&hellip;') + '</option>';
     groups.forEach(function (g) {
       var list = D.payers.filter(g[1]);
       if (!list.length) return;
@@ -709,12 +821,12 @@ footer a { color: var(--muted); }
     var sel = $("plan");
     var list = (D.payerPlans || {})[payer] || [];
     if (!list.length) {
-      sel.innerHTML = '<option value="">Any plan</option>';
+      sel.innerHTML = '<option value="">' + tr('Any plan') + '</option>';
       return;
     }
     var byCov = {};
     list.forEach(function (p) { (byCov[p.cov] = byCov[p.cov] || []).push(p.p); });
-    var html = '<option value="">Any plan</option>';
+    var html = '<option value="">' + tr('Any plan') + '</option>';
     ["Commercial", "Medicare", "Medicaid", "CHIP", "Marketplace"].forEach(function (cov) {
       if (!byCov[cov]) return;
       html += '<optgroup label="' + esc(cov) + '">';
@@ -754,21 +866,77 @@ footer a { color: var(--muted); }
   ];
   var TOP_PAYERS = ["Aetna", "Capital Blue Cross", "Cigna", "Highmark",
                     "Independence Blue Cross", "UnitedHealthcare"];
-  var catFilter = null;
+
+  // Start from what is wrong rather than from a CPT code. "primary" is the
+  // service the search runs on; "svc" lists what else commonly gets billed on
+  // the same episode. Every code here exists in the dataset.
+  var CONDITIONS = [
+    { n: "Flu or bad cold", primary: "99213",
+      svc: ["99283", "85025", "71046", "90686", "90471", "96374"] },
+    { n: "Pneumonia", primary: "194",
+      svc: ["193", "71046", "85025", "80053", "99284", "96365"] },
+    { n: "Chest pain", primary: "99285",
+      svc: ["93000", "93306", "71250", "85025", "80053", "A0427", "A0425"] },
+    { n: "Stroke signs", primary: "065",
+      svc: ["066", "70450", "70553", "93880", "A0427", "A0425"] },
+    { n: "Trouble breathing", primary: "191",
+      svc: ["190", "71046", "99284", "96365"] },
+    { n: "Broken bone or injury", primary: "99284",
+      svc: ["73721", "481", "483", "A0429", "A0425", "J1885", "97110"] },
+    { n: "Urinary infection", primary: "81001",
+      svc: ["87086", "99213", "52000"] },
+    { n: "Pregnancy and birth", primary: "807",
+      svc: ["806", "787", "788", "76805", "76830", "85025", "80053"] },
+    { n: "Back pain", primary: "72148",
+      svc: ["72110", "99213", "64483", "62323", "97110", "97140"] },
+    { n: "Knee or hip pain", primary: "73721",
+      svc: ["29881", "27447", "27130", "470", "20610", "97110"] },
+    { n: "Stomach pain", primary: "74177",
+      svc: ["76700", "99284", "43235", "47562", "80053", "85025"] },
+    { n: "Diabetes check-up", primary: "83036",
+      svc: ["80053", "80061", "99214", "36415"] },
+    { n: "Depression or anxiety", primary: "90834",
+      svc: ["90791", "90837", "99214"] },
+    { n: "Cancer screening", primary: "45378",
+      svc: ["77067", "45380", "45385", "88305", "88312", "00810"] },
+    { n: "Severe infection (sepsis)", primary: "872",
+      svc: ["871", "85025", "80053", "96365", "99285"] }
+  ];
+  var catFilter = null, conditionCtx = null;
 
   function buildQuickPicks() {
     $("catPills").innerHTML = CAT_GROUPS.map(function (g, i) {
-      return '<button type="button" data-g="' + i + '" aria-pressed="false">' + esc(g[0]) + "</button>";
+      return '<button type="button" data-g="' + i + '" aria-pressed="false">' + esc(trIn("catgroup", g[0])) + "</button>";
     }).join("");
     $("popPills").innerHTML = POPULAR.filter(function (p) { return BYCODE[p[1]]; })
       .map(function (p) {
-        return '<button type="button" data-code="' + esc(p[1]) + '">' + esc(p[0]) + "</button>";
+        return '<button type="button" data-code="' + esc(p[1]) + '">' + esc(trIn("pop", p[0])) + "</button>";
       }).join("");
+    $("condPills").innerHTML = CONDITIONS.filter(function (c) { return BYCODE[c.primary]; })
+      .map(function (c, i) {
+        return '<button type="button" data-cond="' + i + '">' + esc(trIn("cond", c.n)) + "</button>";
+      }).join("");
+
+    $("condPills").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-cond]");
+      if (!b) return;
+      Array.prototype.forEach.call($("condPills").children, function (x) {
+        x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      });
+      Array.prototype.forEach.call($("catPills").children, function (x) {
+        x.setAttribute("aria-pressed", "false");
+      });
+      catFilter = null;
+      conditionCtx = CONDITIONS[+b.dataset.cond];
+      pick(BYCODE[conditionCtx.primary]);
+      run(false);
+    });
+
     $("payerPills").innerHTML = TOP_PAYERS.filter(function (n) {
       return D.payers.some(function (p) { return p.n === n; });
     }).map(function (n) {
       return '<button type="button" data-payer="' + esc(n) + '">' + esc(n) + "</button>";
-    }).join("") + '<button type="button" data-payer="__cash">Self-pay / cash</button>';
+    }).join("") + '<button type="button" data-payer="__cash">' + esc(tr("Self-pay / cash")) + "</button>";
 
     $("catPills").addEventListener("click", function (e) {
       var b = e.target.closest("button[data-g]");
@@ -789,8 +957,11 @@ footer a { color: var(--muted); }
       var b = e.target.closest("button[data-code]");
       if (!b) return;
       catFilter = null;
-      Array.prototype.forEach.call($("catPills").children, function (x) {
-        x.setAttribute("aria-pressed", "false");
+      conditionCtx = null;
+      [$("catPills"), $("condPills")].forEach(function (box) {
+        Array.prototype.forEach.call(box.children, function (x) {
+          x.setAttribute("aria-pressed", "false");
+        });
       });
       pick(BYCODE[b.dataset.code]);
       run(false);
@@ -824,7 +995,7 @@ footer a { color: var(--muted); }
   var input = $("proc"), list = $("procList"), active = -1, shown = [];
 
   function labelFor(s) {
-    return s.name + "  (" + (s.type === "MS-DRG" ? "DRG " : "") + s.code + ")";
+    return svcName(s) + "  (" + (s.type === "MS-DRG" ? "DRG " : "") + s.code + ")";
   }
   function pick(s) { picked = s || null; if (s) input.value = labelFor(s); close(); }
   function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; }
@@ -835,7 +1006,8 @@ footer a { color: var(--muted); }
       : SVC;
     if (!q) return pool.slice(0, 80);
     return pool.filter(function (s) {
-      return (s.name + " " + s.code + " " + s.cat).toLowerCase().indexOf(q) > -1;
+      return (s.name + " " + svcName(s) + " " + s.code + " " + s.cat + " " +
+              catName(s.cat)).toLowerCase().indexOf(q) > -1;
     }).slice(0, 80);
   }
   function open() {
@@ -846,8 +1018,8 @@ footer a { color: var(--muted); }
       list.innerHTML = shown.map(function (s, i) {
         return '<li role="option" id="opt' + i + '" aria-selected="false" data-i="' + i + '">' +
           '<span class="code">' + (s.type === "MS-DRG" ? "DRG&nbsp;" : "") + esc(s.code) + "</span>" +
-          '<span class="nm">' + esc(s.name) + "</span>" +
-          '<span class="cat">' + esc(s.cat) + "</span></li>";
+          '<span class="nm">' + esc(svcName(s)) + "</span>" +
+          '<span class="cat">' + esc(catName(s.cat)) + "</span></li>";
       }).join("");
     }
     list.hidden = false;
@@ -863,7 +1035,16 @@ footer a { color: var(--muted); }
     input.setAttribute("aria-activedescendant", "opt" + active);
     items[active].scrollIntoView({ block: "nearest" });
   }
-  input.addEventListener("input", function () { picked = null; open(); });
+  input.addEventListener("input", function () {
+    picked = null;
+    if (conditionCtx) {
+      conditionCtx = null;
+      Array.prototype.forEach.call($("condPills").children, function (x) {
+        x.setAttribute("aria-pressed", "false");
+      });
+    }
+    open();
+  });
   input.addEventListener("focus", open);
   input.addEventListener("keydown", function (e) {
     if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) open(); highlight(active + 1); }
@@ -926,10 +1107,8 @@ footer a { color: var(--muted); }
   var extras = {};   // code -> dollar amount currently ticked
 
   function companionCodes(svc) {
-    var list = (COMPANION_BY_CAT[svc.cat] || []).filter(function (c) {
-      return c !== svc.code && BYCODE[c];
-    });
-    return list;
+    var src = conditionCtx ? conditionCtx.svc : (COMPANION_BY_CAT[svc.cat] || []);
+    return src.filter(function (c) { return c !== svc.code && BYCODE[c]; });
   }
 
   function loadCompanions(svc, payer, hospitalId) {
@@ -948,7 +1127,7 @@ footer a { color: var(--muted); }
   function renderCompanions(svc, hospital, items) {
     var host = $("companions");
     if (!host) return;
-    if (svc.type === "MS-DRG") {
+    if (svc.type === "MS-DRG" && !conditionCtx) {
       host.innerHTML = '<h3>Commonly billed alongside</h3>' +
         '<p class="hint" style="margin-top:6px">An MS-DRG is a single bundled payment for the whole inpatient stay, so ' +
         "room, nursing, theatre and most supplies are already inside the figure above. " +
@@ -960,9 +1139,16 @@ footer a { color: var(--muted); }
       host.hidden = true;
       return;
     }
-    var html = ['<h3>Commonly billed alongside</h3>',
-      '<p class="hint" style="margin-top:6px">These arrive as separate line items on the same visit. ' +
-      "Rates shown are for " + esc(hospital.name) +
+    var html = ["<h3>" + (conditionCtx
+        ? esc(tr("Typical costs for {x}").replace("{x}", trIn("cond", conditionCtx.n).toLowerCase()))
+        : esc(tr("Commonly billed alongside"))) + "</h3>",
+      (conditionCtx
+        ? '<p class="hint" style="margin-top:6px">Services commonly billed when someone is treated for ' +
+          esc(conditionCtx.n.toLowerCase()) + ". This is a cost guide, not medical advice — " +
+          "which of these you actually need is for a clinician to decide. Rates are for "
+        : '<p class="hint" style="margin-top:6px">These arrive as separate line items on the same visit. ' +
+          "Rates shown are for ") +
+      esc(hospital.name) +
       (hospital.campus && hospital.campus !== "All licensed locations" ? " &mdash; " + esc(hospital.campus) : "") +
       ". Tick what applies and it carries into <b>Estimate my bill</b>.</p>",
       '<ul class="cList">'];
@@ -972,13 +1158,13 @@ footer a { color: var(--muted); }
         '<input type="checkbox" data-code="' + esc(it.code) + '"' +
         (has ? ' data-amt="' + it.e.mid + '"' : " disabled") + ">" +
         '<span class="cc">' + esc(it.code) + "</span>" +
-        "<span>" + esc(it.svc.name) + "</span></label>" +
+        "<span>" + esc(svcName(it.svc)) + "</span></label>" +
         '<span class="cv' + (has ? "" : " none") + '">' +
-        (has ? (it.e.mid > 0 ? money(it.e.mid) : "$0 (bundled)") : "not published") +
+        (has ? (it.e.mid > 0 ? money(it.e.mid) : "$0") : esc(tr("not published"))) +
         "</span></li>");
     });
     html.push("</ul>");
-    html.push('<div class="cTotal"><span>Selected extras</span><span class="cv" id="cTotal">$0</span></div>');
+    html.push('<div class="cTotal"><span>' + esc(tr("Selected extras")) + '</span><span class="cv" id="cTotal">$0</span></div>');
     host.innerHTML = html.join("");
     host.hidden = false;
 
@@ -997,6 +1183,13 @@ footer a { color: var(--muted); }
   }
 
   /* ---------------- geo ---------------- */
+
+  function directionsURL(h, here) {
+    var origin = here && lastCtx ? lastCtx.zip : "";
+    return "https://www.google.com/maps/dir/?api=1" +
+      (origin ? "&origin=" + encodeURIComponent(origin + " PA") : "") +
+      "&destination=" + encodeURIComponent(h.name + ", " + h.addr);
+  }
 
   var K = Math.cos(40.6 * Math.PI / 180);
   function prj(lat, lon) { return [lon * K, -lat]; }
@@ -1019,20 +1212,20 @@ footer a { color: var(--muted); }
     var missing = [];
     ["f-zip", "f-payer", "f-proc"].forEach(function (id) { $(id).classList.remove("invalid"); });
 
-    if (!/^\d{5}$/.test(zip)) { missing.push("a 5-digit ZIP code"); $("f-zip").classList.add("invalid"); }
-    if (!payer) { missing.push("your insurance provider"); $("f-payer").classList.add("invalid"); }
-    if (!picked) { missing.push("a medical procedure from the list"); $("f-proc").classList.add("invalid"); }
+    if (!/^\d{5}$/.test(zip)) { missing.push(tr("a 5-digit ZIP code")); $("f-zip").classList.add("invalid"); }
+    if (!payer) { missing.push(tr("your insurance provider")); $("f-payer").classList.add("invalid"); }
+    if (!picked) { missing.push(tr("a medical procedure from the list")); $("f-proc").classList.add("invalid"); }
 
     var err = $("formError");
     if (missing.length) {
-      err.textContent = "Please enter " + missing.join(", ").replace(/, ([^,]*)$/, " and $1") + " before searching.";
+      err.textContent = tr("Please enter {x} before searching.").replace("{x}", joinList(missing));
       err.hidden = false;
       return;
     }
     err.hidden = true;
 
     var svc = picked, plan = $("plan").value;
-    if (API) { $("panel-results").innerHTML = '<p class="skeleton">Looking up rates&hellip;</p>'; }
+    if (API) { $("panel-results").innerHTML = ('<p class="skeleton">' + tr('Looking up rates&hellip;') + '</p>'); }
     loadRates(svc.code, payer)
       .then(function (priced) {
         lastCtx = { zip: zip, payer: payer, svc: svc, plan: plan, isExample: isExample, priced: priced || {} };
@@ -1157,9 +1350,9 @@ footer a { color: var(--muted); }
     var out = [];
 
     out.push('<div class="resultsHead"><div>' +
-      "<h2>" + esc(svc.name) + "</h2>" +
+      "<h2>" + esc(svcName(svc)) + "</h2>" +
       '<p class="sub">' + (svc.type === "MS-DRG" ? "MS-DRG " : "CPT/HCPCS ") + esc(svc.code) +
-      " &middot; " + esc(svc.cat) + " &middot; " + esc(payer) +
+      " &middot; " + esc(catName(svc.cat)) + " &middot; " + esc(payer) +
       (c.plan ? " &middot; " + esc(c.plan) : "") +
       (here ? " &middot; near " + esc(c.zip) : " &middot; ZIP " + esc(c.zip) + " is outside the covered area, so distance is not scored") +
       "</p></div>" +
@@ -1197,7 +1390,7 @@ footer a { color: var(--muted); }
     out.push('<div class="layout" style="margin-top:16px">');
     out.push('<div class="mapPanel">' + mapSVG(rows, here) + '<p class="mapNote">' +
       (here ? "Your ZIP (" + esc(c.zip) + ") is marked with a ring. " : "") +
-      "Lehigh and Northampton counties are shaded. LVHN's ten Lehigh Valley sites share one published price, so the network appears once, pinned at Cedar Crest.</p></div>");
+      "Lehigh and Northampton counties are shaded. Distances are straight-line. LVHN's ten Lehigh Valley sites share one published price, so the network appears once, pinned at Cedar Crest.</p></div>");
 
     out.push('<ol class="cards">');
     rows.forEach(function (r, i) {
@@ -1209,12 +1402,15 @@ footer a { color: var(--muted); }
       out.push('<div class="cardTop"><div class="rank">' + (i + 1) + '</div><div style="min-width:0">' +
         '<div class="hName">' + esc(h.name) + (h.campus && h.campus !== "All licensed locations" ? " &mdash; " + esc(h.campus) : "") + "</div>" +
         '<div class="hMeta">' + esc(h.addr) +
-        (r.dist !== null ? " &middot; " + r.dist.toFixed(1) + " mi" : "") + "</div></div>" +
-        (r.match !== null ? '<div class="matchBox"><b>' + r.match + "</b><span>match</span></div>" : "") +
+        (r.dist !== null ? " &middot; " + r.dist.toFixed(1) + " mi" : "") +
+        '<div style="margin-top:5px"><a class="dirLink" target="_blank" rel="noopener" href="' +
+        esc(directionsURL(h, here)) + '">' + tr("Directions &rarr;") + '</a></div>' +
+        "</div></div>" +
+        (r.match !== null ? '<div class="matchBox"><b>' + r.match + "</b><span>" + esc(tr("match")) + "</span></div>" : "") +
         "</div>");
 
       out.push('<div><div class="priceRow"><div class="price">' + money(e.mid) + "</div>" +
-        '<div class="priceLbl"><span class="jt" title="The total the hospital accepts from you and your insurer combined - not your bill. See How to read this.">typical negotiated rate</span> &middot; <span class="pill">' + esc(e.set) + "</span>" +
+        '<div class="priceLbl"><span class="jt" title="The total the hospital accepts from you and your insurer combined - not your bill. See How to read this.">' + esc(tr("typical negotiated rate")) + '</span> &middot; <span class="pill">' + esc(tr(e.set)) + "</span>" +
         (r.q && r.q.stars ? ' <span class="pill good">' + r.q.stars + "&#9733; CMS</span>" : "") + "</div></div>");
       out.push('<div class="bar" data-h="' + esc(h.id) + '" tabindex="0" role="img" aria-label="Range ' +
         money(e.lo) + " to " + money(e.hi) + ", typical " + money(e.mid) + ' across ' + e.n + ' published rates">' +
@@ -1237,15 +1433,15 @@ footer a { color: var(--muted); }
         var f = FACTORS.filter(function (x) { return x.k === k; })[0];
         var v = r.f[k];
         if (v === null) {
-          out.push('<div class="frow na"><span class="fl"><b>' + (idx + 1) + "</b> " + esc(f.n) +
-            '</span><span class="meter"></span><span class="fv">no data</span></div>');
+          out.push('<div class="frow na"><span class="fl"><b>' + (idx + 1) + "</b> " + esc(tr(f.n)) +
+            '</span><span class="meter"></span><span class="fv">' + esc(tr("no data")) + "</span></div>");
           return;
         }
         var label = k === "price" ? money(r.e.mid)
           : k === "dist" ? r.dist.toFixed(1) + " mi"
           : k === "stars" ? r.q.stars + " / 5"
           : Math.round(v) + " / 100";
-        out.push('<div class="frow"><span class="fl"><b>' + (idx + 1) + "</b> " + esc(f.n) +
+        out.push('<div class="frow"><span class="fl"><b>' + (idx + 1) + "</b> " + esc(tr(f.n)) +
           ' <em>&times;' + Math.round(liveW[k] * 100) + "%</em></span>" +
           '<span class="meter"><i style="width:' + Math.max(2, v).toFixed(0) + '%"></i></span>' +
           '<span class="fv">' + Math.round(v) + "<small> " + esc(label) + "</small></span></div>");
@@ -1280,7 +1476,7 @@ footer a { color: var(--muted); }
         out.push('<div class="flag">One price covers all ten LVHN sites in the valley. LVHN publishes no list or cash price for coded services, and does not label facility versus physician fees.</div>');
       }
 
-      out.push("<details><summary>Rates by plan (" + e.plans.length + ")</summary><ul class=\"plans\">");
+      out.push("<details><summary>" + esc(tr("Rates by plan")) + " (" + e.plans.length + ")</summary><ul class=\"plans\">");
       e.plans.forEach(function (p) {
         out.push('<li><span class="pn">' + esc(p.p) +
           (p.cov ? ' <span class="pill">' + esc(p.cov) + "</span>" : "") +
@@ -1459,7 +1655,7 @@ footer a { color: var(--muted); }
 
   function estimate() {
     if (!lastRows || !lastRows.length) {
-      $("estFor").textContent = "Run a search first.";
+      $("estFor").textContent = tr("Run a search first.");
       $("ledger").innerHTML = "";
       $("split").hidden = true;
       return;
@@ -1506,19 +1702,19 @@ footer a { color: var(--muted); }
     var lines = [], you;
     if (selfPay) {
       you = allowed;
-      lines.push([basis === "cash" ? "Discounted cash price" : "List (chargemaster) price",
+      lines.push([basis === "cash" ? tr("Discounted cash price") : tr("List (chargemaster) price"),
                   money(allowed), false]);
     } else if (copay > 0) {
       you = Math.min(copay, allowed);
-      lines.push(["Flat copay for this service", money(you), false]);
+      lines.push([tr("Flat copay (if any)"), money(you), false]);
     } else {
       var toDed = Math.min(allowed, ded);
       var after = allowed - toDed;
       var coinsAmt = after * (coins / 100);
       you = toDed + coinsAmt;
-      lines.push(["Applied to your deductible", money(toDed), false]);
-      lines.push(["Left after the deductible", money(after), true]);
-      lines.push(["Your coinsurance (" + coins + "% of that)", money(coinsAmt), false]);
+      lines.push([tr("Applied to your deductible"), money(toDed), false]);
+      lines.push([tr("Left after the deductible"), money(after), true]);
+      lines.push([tr("Coinsurance") + " (" + coins + "%)", money(coinsAmt), false]);
     }
 
     var capped = false;
@@ -1539,25 +1735,25 @@ footer a { color: var(--muted); }
     $("splitInsName").textContent = lastCtx.payer;
 
     var html = ['<li class="muted"><span>' +
-      (selfPay ? (basis === "cash" ? "Hospital's discounted cash price" : "Hospital's list price")
-               : "Negotiated rate for the procedure") +
+      (selfPay ? (basis === "cash" ? tr("Hospital's discounted cash price") : tr("Hospital's list price"))
+               : tr("Negotiated rate for the procedure")) +
       '</span><span class="lv">' + money(base) + "</span></li>"];
     if (ex > 0) {
-      html.push('<li class="muted"><span>Extra line items you ticked</span><span class="lv">' + money(ex) + "</span></li>");
-      html.push('<li class="muted"><span>Total allowed amount</span><span class="lv">' + money(allowed) + "</span></li>");
+      html.push('<li class="muted"><span>' + esc(tr("Extra line items you ticked")) + '</span><span class="lv">' + money(ex) + "</span></li>");
+      html.push('<li class="muted"><span>' + esc(tr("Total allowed amount")) + '</span><span class="lv">' + money(allowed) + "</span></li>");
     }
     lines.forEach(function (x) {
       html.push("<li" + (x[2] ? ' class="muted"' : "") + "><span>" + esc(x[0]) + '</span><span class="lv">' + x[1] + "</span></li>");
     });
     if (capped) {
-      html.push('<li class="muted"><span>Capped by your out-of-pocket maximum</span><span class="lv">' + money(oop) + "</span></li>");
+      html.push('<li class="muted"><span>' + esc(tr("Capped by your out-of-pocket maximum")) + '</span><span class="lv">' + money(oop) + "</span></li>");
     }
-    html.push('<li class="total"><span>You would pay about</span><span class="lv">' + money(you) + "</span></li>");
+    html.push('<li class="total"><span>' + esc(tr("You would pay about")) + '</span><span class="lv">' + money(you) + "</span></li>");
     if (!selfPay) {
-      html.push('<li class="muted"><span>' + esc(lastCtx.payer) + ' pays</span><span class="lv">' + money(ins) + "</span></li>");
+      html.push('<li class="muted"><span>' + esc(lastCtx.payer) + ' ' + esc(tr('pays')) + '</span><span class="lv">' + money(ins) + "</span></li>");
     }
     if (activePreset === "medicare") {
-      html.push('<li class="muted"><span>Traditional Medicare has no out-of-pocket maximum</span><span class="lv">&mdash;</span></li>');
+      html.push('<li class="muted"><span>' + esc(tr("Traditional Medicare has no out-of-pocket maximum")) + '</span><span class="lv">&mdash;</span></li>');
     }
     $("ledger").innerHTML = html.join("");
 
